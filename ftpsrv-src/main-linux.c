@@ -1,0 +1,63 @@
+/* Copyright (C) 2025 John Törnblom
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING. If not, see
+<http://www.gnu.org/licenses/>.  */
+
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+
+#include "log.h"
+#include "srv.h"
+
+
+int
+main(int argc, char* argv[]) {
+  uint16_t port = 2121;
+  int notify_user = 1;
+  char c;
+
+  while((c=getopt(argc, argv, "p:h")) != -1) {
+    switch(c) {
+    case 'p':
+      port = atoi(optarg);
+      break;
+
+    case 'h':
+    default:
+      printf("usage: %s [-p PORT]\n", argv[0]);
+      puts("");
+      printf("options:");
+      printf("    -p PORT    Bind the socket server to the given PORT (default: 2121)\n");
+      return 1;
+    }
+  }
+
+  signal(SIGPIPE, SIG_IGN);
+
+  while(1) {
+    ftp_serve(port, notify_user);
+    notify_user = 0;
+    sleep(3);
+  }
+
+  return 0;
+}
+
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/
