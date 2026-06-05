@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<psproject fmt="gp5" version="1000">
+	<volume>
+		<volume_type>prospero_app</volume_type>
+		<package
+			content_id="IV9999-PSPS69691_00-ELFARSENAL000001"
+			passcode="00000000000000000000000000000000"
+			storage_type="digital50"
+			app_type="full"/>
+		<chunk_info chunk_count="1" scenario_count="1">
+			<chunks>
+				<chunk id="0" label="Chunk #0"/>
+			</chunks>
+			<scenarios default_id="0">
+				<scenario id="0" initial_chunk_count="1" label="Scenario #0" type="playmode">0</scenario>
+			</scenarios>
+		</chunk_info>
+	</volume>
+	<files>
+		<file targ_path="sce_sys/param.json" orig_path="sce_sys/param.json" />
+		<file targ_path="sce_sys/icon0.png"  orig_path="sce_sys/icon0.png"  />
+		<file targ_path="eboot.bin"          orig_path="eboot.bin"          />
+	</files>
+	<rootdir>
+		<dir targ_name="sce_sys" />
+	</rootdir>
+</psproject>

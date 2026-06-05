@@ -1,0 +1,29 @@
+{
+  "applicationCategoryType": 0,
+  "attribute": 1,
+  "attribute2": 0,
+  "attribute3": 4,
+  "contentBadgeType": 1,
+  "contentId": "IV9999-PSPS69691_00-ELFARSENAL000001",
+  "contentVersion": "01.000.000",
+  "deeplinkUri": "http://127.0.0.1:6969/",
+  "downloadDataSize": 0,
+  "localizedParameters": {
+    "defaultLanguage": "en-US",
+    "en-US": {
+      "titleName": "Elf Arsenal"
+    }
+  },
+  "masterVersion": "00.00",
+  "originContentVersion": "01.000.000",
+  "pubtoolInfo": "creation_date=2026-05-06,c_date=20260506,c_time=0,sdk_ver=1000051,st_type=digital50,img0_l0_size=0,img0_l1_size=0,img0_pc_size=18000000",
+  "pubtoolVer": "0x05500000",
+  "requiredSystemSoftwareVersion": "0x00000000",
+  "sdkVersion": "0x0000000000000000",
+  "titleId": "PSPS69691",
+  "userDefinedParam1": 1,
+  "userDefinedParam2": 0,
+  "userDefinedParam3": 0,
+  "userDefinedParam4": 0,
+  "versionFileUri": ""
+}
