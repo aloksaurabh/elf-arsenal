@@ -1,0 +1,29 @@
+/* Elf Arsenal build-version badge (bottom-right of every page).
+   Hooks into the JSON returned by /version (the "version" field
+   gets baked in at compile time from `git describe`). */
+#sonic-verbadge {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2147483646;     /* sits above almost everything except modals */
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: auto;
+  user-select: none;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+#sonic-verbadge:hover { opacity: 1; }
+#sonic-verbadge[hidden] { display: none; }
+@media (max-width: 480px) {
+  #sonic-verbadge { font-size: 10px; padding: 3px 6px; }
+}

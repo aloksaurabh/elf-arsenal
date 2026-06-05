@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — stats</title>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg-0: #050913; --bg-1: #0d1424; --bg-2: #131b30;
+    --fg-0: #e8eefb; --fg-1: #9aa6c4;
+    --accent: #4cc9ff; --danger: #ff5675; --ok: #6bff9c;
+    --bg-glow-a: #1a2440; --bg-glow-b: #163046;
+  }
+  html[data-theme="oled"] {
+    --bg-0: #000; --bg-1: #050505; --bg-2: #0a0a0a;
+    --fg-0: #f5f5f5; --fg-1: #888;
+    --accent: #00d4ff; --danger: #ff3b58; --ok: #4cff8a;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  html[data-theme="light"] {
+    --bg-0: #f3f6fc; --bg-1: #fff; --bg-2: #e9eef8;
+    --fg-0: #101724; --fg-1: #50607c;
+    --accent: #0066d6; --danger: #d12d49; --ok: #1d9d4f;
+    --bg-glow-a: #d6e3f6; --bg-glow-b: #e6efff;
+  }
+  html[data-theme="contrast"] {
+    --bg-0: #000; --bg-1: #000; --bg-2: #111;
+    --fg-0: #fff; --fg-1: #fff;
+    --accent: #ff0; --danger: #ff0040; --ok: #00ff5e;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: radial-gradient(900px 600px at 75% -10%, var(--bg-glow-a) 0%, transparent 60%),
+                radial-gradient(800px 500px at -10% 110%, var(--bg-glow-b) 0%, transparent 55%),
+                var(--bg-0);
+    color: var(--fg-0);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  h1 { font-size: 18px; margin: 0; flex: 1; }
+  a { color: var(--accent); text-decoration: none; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--bg-1);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .card .label { font-size: 11px; color: var(--fg-1); text-transform: uppercase; letter-spacing: 0.05em; }
+  .card .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+  .card .sub   { font-size: 12px; color: var(--fg-1); margin-top: 4px; }
+  .hot   { color: var(--danger); }
+  .warm  { color: #ffb84a; }
+  .cool  { color: var(--ok); }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>📊 Stats</h1>
+    <span id="updated" style="font-size:11px;color:var(--fg-1);">—</span>
+    <a href="/?settings=open" title="Open Elf Arsenal settings">⚙ Settings</a>
+    <a href="/launcher.html">← Back</a>
+  </header>
+  <div class="grid" id="grid">
+    <div class="card"><div class="label">Loading…</div></div>
+  </div>
+
+<script>
+(function () {
+  let t = 'dark';
+  try { t = localStorage.getItem('sl-theme') || 'dark'; } catch(_) {}
+  document.documentElement.setAttribute('data-theme', t);
+
+  const grid = document.getElementById('grid');
+  const updated = document.getElementById('updated');
+
+  function tempClass(c) {
+    if (c == null) return '';
+    if (c >= 80) return 'hot';
+    if (c >= 65) return 'warm';
+    return 'cool';
+  }
+
+  function fmtUptime(s) {
+    if (s == null || s < 0) return '—';
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm';
+  }
+
+  function card(label, value, sub, klass) {
+    return '<div class="card">' +
+             '<div class="label">' + label + '</div>' +
+             '<div class="value' + (klass ? ' ' + klass : '') + '">' + value + '</div>' +
+             (sub ? '<div class="sub">' + sub + '</div>' : '') +
+           '</div>';
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/api/stats', { cache: 'no-store' });
+      if (!r.ok) return;
+      const s = await r.json();
+      let html = '';
+      if (s.cpuC != null)
+        html += card('CPU Temp',  s.cpuC + '°C', '', tempClass(s.cpuC));
+      if (s.socC != null)
+        html += card('SoC Temp',  s.socC + '°C', '', tempClass(s.socC));
+      if (s.hottestC != null)
+        html += card('Hottest',   s.hottestC + '°C', 'highest sensor reading', tempClass(s.hottestC));
+      if (s.uptimeSec != null)
+        html += card('Uptime',    fmtUptime(s.uptimeSec), 'since boot');
+      html += card('Loader PID', s.loaderPid, 'elf-arsenal.elf');
+      html += card('Klog Buffer', s.klogBuffered + ' lines',
+                   s.klogPaused ? 'paused' : 'live');
+      grid.innerHTML = html;
+      updated.textContent = 'updated ' + new Date().toLocaleTimeString();
+    } catch (_) {}
+  }
+
+  poll();
+  setInterval(poll, 3000);
+})();
+</script>
+<script>
+/* PS5 in-app WebKit ignores Cache-Control: no-store for anchor
+   navigation — bust caching at the URL level instead. */
+document.querySelectorAll('header a[href^="/"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    if (a.target === '_blank') return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return;
+    e.preventDefault();
+    var sep = href.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = href + sep + '_=' + Date.now();
+  });
+});
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+/* Copyright (C) 2024 idlesauce
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING. If not, see
+<http://www.gnu.org/licenses/>.  */
+
+@keyframes fadein {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes zoomin {
+    0% {
+        transform: scale(0.8);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+:root {
+    font-family: "Arial", sans-serif;
+    --text-color: #fff;
+    --secondary-text-color: #bbb;
+    color: var(--text-color);
+    --background-color: #0b0d0f;
+    --surface-color: #1f2225;
+    --surface-color-hover: #3b4047;
+    --modal-background-color: #181a1c;
+    --file-picker-directory-icon-color: #f9e87c;
+    --icon-default-color: var(--text-color);
+    --carousel-transition: left 0.3s ease;
+
+    font-size: 20px;
+}
+
+*:focus {
+    outline: none;
+}
+
+body {
+    background-color: var(--background-color);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.header {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.header * {
+    margin: 0;
+    padding: 0;
+}
+
+div.carousel {
+    padding: 0 512px;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    align-items: center;
+    width: max-content;
+    position: relative;
+    transition: var(--carousel-transition);
+}
+
+div.entry-wrapper.selected>div:hover {
+    background-color: var(--surface-color-hover);
+}
+
+div.entry-wrapper.selected:not(:hover) div.entry-main {
+    background-color: var(--surface-color-hover);
+}
+
+div.entry-wrapper:not(.selected) div.entry {
+    background-color: var(--surface-color) !important;
+}
+
+
+div.entry-wrapper {
+    flex: none;
+    height: 55vh;
+    width: 50vh;
+    margin-right: 8vh;
+    transition: transform 0.3s ease;
+    box-sizing: border-box;
+    position: relative;
+}
+
+div.entry-wrapper.selected {
+    /* some js is tied to this for the cursor snapping to work so if you change this also change that */
+    transform: scale(1.2);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Phone override (bug (a) — "CAN'T GO →"):
+   the PS5-controller horizontal carousel is unusable on a phone — the
+   user can't pan, the entries are 50vh wide and the carousel itself
+   has overflow-x:hidden. Flip to a vertical stack with normal scroll
+   on small screens. The selected-scale transform stays harmless. */
+@media (max-width: 540px) {
+    div.carousel {
+        flex-direction: column !important;
+        padding: 8px 10px !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow-x: hidden;
+        overflow-y: visible;
+        gap: 12px;
+    }
+    div.entry-wrapper {
+        width: 100% !important;
+        height: auto !important;
+        margin-right: 0 !important;
+        margin-bottom: 0;
+    }
+    div.entry-wrapper.selected {
+        /* Scale + transform-origin from top so the expanded selection
+           doesn't clip its bottom on a phone-height screen. */
+        transform: scale(1.04) !important;
+        transform-origin: top center;
+    }
+    div.entry {
+        height: auto !important;
+        min-height: 160px;
+    }
+}
+
+div.entry {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background-color: var(--surface-color);
+    border-radius: 1vh;
+    transition: background-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: calc(100% - 50px);
+    cursor: pointer;
+    padding: 1rem;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+div.entry p {
+    padding: 0;
+    margin: 5px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entry img {
+    display: block;
+    max-width: 100%;
+    max-height: 30vh;
+    object-fit: contain;
+}
+
+div.entry-more-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 7vh;
+    text-align: center;
+    margin-top: 0.5em;
+    background-color: var(--surface-color);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.text-secondary {
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+}
+
+.entry-name {
+    font-weight: 700;
+}
+
+div.list {
+    margin: 0 10vh 0 10vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+p.list-title {
+    font-size: 1.4rem;
+    padding: 0;
+    margin: 1em 0 0 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+div.list-entry {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.list-entry-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 5em;
+    background-color: var(--surface-color);
+    margin-bottom: 1rem;
+    border-radius: 1vh;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    padding: 0;
+}
+
+.list-entry-btn:hover {
+    background-color: var(--surface-color-hover);
+}
+
+a.list-entry-main-button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+a.list-entry-secondary-button {
+    flex: 0 0 auto;
+    margin-left: 0.5rem;
+}
+
+div.list-category-separator {
+    margin: 0 10vw;
+    border-bottom: 1px solid  #666;
+}
+
+p.list-category-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 1em 0;
+    text-align: center;
+    width: 100%;
+}
+
+div.list-entry-column {
+
+}
+
+div.list-entry-column-end {
+    margin-left: auto;
+    margin-right: 1.5rem;
+    text-align: right;
+}
+
+.list-entry-icon {
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    max-width: 2.25rem;
+    max-height: 2.25rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+}
+
+p.list-entry-name {
+    font-weight: bold;
+    font-size: 1.05em;
+    margin: 0.5em 0.5em 0.5em 0;
+}
+
+p.list-entry-secondary-text {
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+    margin: 0.5em 0.5em 0.5em 0;
+}
+
+.entry-main{
+    position: relative;
+}
+
+.entry-img{
+    margin-bottom: 10vh;
+}
+
+.entry-main img[style*="display: block"]~p:nth-child(2) {
+    position: absolute;
+    bottom: 7vh;
+}
+
+.entry-main img[style*="display: block"]~p:nth-child(3) {
+    position: absolute;
+    bottom: 3vh;
+}
+
+svg use {
+    fill: var(--icon-default-color);
+}
+
+svg use[href="#dir-icon"],
+svg use[xlink\:href="#dir-icon"] {
+  fill: var(--file-picker-directory-icon-color) !important;
+}
+
+svg use[href="#ps-triangle-icon"],
+svg use[xlink\:href="#ps-triangle-icon"],
+svg use[href="#ps-circle-icon"],
+svg use[xlink\:href="#ps-circle-icon"],
+svg use[href="#ps-cross-icon"],
+svg use[xlink\:href="#ps-cross-icon"],
+svg use[href="#ps-square-icon"],
+svg use[xlink\:href="#ps-square-icon"] {
+    fill: none !important;
+    stroke: var(--icon-default-color) !important;
+    stroke-width: 2px !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;  
+}
+
+.launched-app-view {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 4rem 1fr;
+    justify-items: stretch;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.launched-app-view > :first-child svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0.5rem;
+}
+
+.launched-app-view > :first-child {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.launched-app-view > div.terminal {
+    border: 2px solid #444;
+    border-radius: 0.5rem;
+    margin: 0 1rem 1rem 1rem;
+    box-sizing: border-box;
+    height: calc(100% - 1rem);
+    width: calc(100% - 2rem);
+}
+
+.launched-app-view > div.terminal > div > div {
+    border-radius: 0.5rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadein 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--modal-background-color);
+    padding: 20px;
+    border-radius: 10px;
+    animation: zoomin 0.3s ease;
+    width: 70vh;
+    height: 70vh;
+}
+
+.text-center {
+    text-align: center;
+    width: 100%;
+}
+
+.fadeout {
+    animation: fadeout 0.25s ease !important;
+}
+
+.fadein {
+    animation: fadein 0.25s ease;
+}
+
+.loading-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: inherit;
+    pointer-events: none;
+    animation: fadein 0.3s ease;
+}
+
+/* https://stephanwagner.me/only-css-loading-spinner */
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5vh;
+    height: 5vh;
+    margin-top: -2.5vh;
+    margin-left: -2.5vh;
+    border-radius: 50%;
+    border-top: 2px solid var(--text-color);
+    border-right: 2px solid transparent;
+    animation: spinner .6s linear infinite, fadein 0.3s ease;
+    pointer-events: none;
+}

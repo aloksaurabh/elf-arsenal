@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — klog</title>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg-0: #050913; --bg-1: #0d1424; --bg-2: #131b30;
+    --fg-0: #e8eefb; --fg-1: #9aa6c4;
+    --accent: #4cc9ff; --danger: #ff5675; --ok: #6bff9c;
+    --bg-glow-a: #1a2440; --bg-glow-b: #163046;
+  }
+  html[data-theme="oled"] {
+    --bg-0: #000; --bg-1: #050505; --bg-2: #0a0a0a;
+    --fg-0: #f5f5f5; --fg-1: #888;
+    --accent: #00d4ff; --danger: #ff3b58; --ok: #4cff8a;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  html[data-theme="light"] {
+    --bg-0: #f3f6fc; --bg-1: #fff; --bg-2: #e9eef8;
+    --fg-0: #101724; --fg-1: #50607c;
+    --accent: #0066d6; --danger: #d12d49; --ok: #1d9d4f;
+    --bg-glow-a: #d6e3f6; --bg-glow-b: #e6efff;
+  }
+  html[data-theme="contrast"] {
+    --bg-0: #000; --bg-1: #000; --bg-2: #111;
+    --fg-0: #fff; --fg-1: #fff;
+    --accent: #ff0; --danger: #ff0040; --ok: #00ff5e;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: radial-gradient(900px 600px at 75% -10%, var(--bg-glow-a) 0%, transparent 60%),
+                radial-gradient(800px 500px at -10% 110%, var(--bg-glow-b) 0%, transparent 55%),
+                var(--bg-0);
+    color: var(--fg-0);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+  }
+  h1 { font-size: 18px; margin: 0; flex: 1; }
+  a { color: var(--accent); text-decoration: none; }
+  button {
+    background: var(--bg-2); color: var(--fg-0);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 7px 12px;
+    font-size: 12px; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.1); }
+  button[data-active] { border-color: var(--accent); }
+  .stat { font-size: 11px; color: var(--fg-1); }
+  .viewer {
+    background: var(--bg-1);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px;
+    height: calc(100vh - 130px);
+    overflow-y: auto;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .line { padding: 1px 0; }
+  .ts   { color: var(--fg-1); margin-right: 8px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>📜 Klog</h1>
+    <span class="stat" id="status">…</span>
+    <button id="pause-btn" type="button">Pause</button>
+    <button id="clear-btn" type="button">Clear</button>
+    <button id="dl-btn"    type="button">Download</button>
+    <button id="auto-btn"  type="button" data-active>Auto-scroll</button>
+    <a href="/launcher.html">← Back</a>
+  </header>
+  <div class="viewer" id="viewer"></div>
+
+<script>
+(function () {
+  /* Apply persisted theme */
+  let t = 'dark';
+  try { t = localStorage.getItem('sl-theme') || 'dark'; } catch(_) {}
+  document.documentElement.setAttribute('data-theme', t);
+
+  const viewer = document.getElementById('viewer');
+  const status = document.getElementById('status');
+  const pauseBtn = document.getElementById('pause-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  const dlBtn    = document.getElementById('dl-btn');
+  const autoBtn  = document.getElementById('auto-btn');
+
+  let lastSeq = 0;
+  let autoScroll = true;
+  let allLines = [];   // local copy for download
+
+  autoBtn.addEventListener('click', () => {
+    autoScroll = !autoScroll;
+    if (autoScroll) autoBtn.setAttribute('data-active', '');
+    else autoBtn.removeAttribute('data-active');
+  });
+
+  pauseBtn.addEventListener('click', async () => {
+    const r = await fetch(
+      pauseBtn.dataset.paused ? '/api/klogs/resume' : '/api/klogs/pause',
+      { method: 'POST' });
+    const j = await r.json();
+    if (j.paused) {
+      pauseBtn.textContent = 'Resume';
+      pauseBtn.dataset.paused = '1';
+    } else {
+      pauseBtn.textContent = 'Pause';
+      delete pauseBtn.dataset.paused;
+    }
+  });
+
+  clearBtn.addEventListener('click', async () => {
+    await fetch('/api/klogs/clear', { method: 'POST' });
+    viewer.innerHTML = '';
+    allLines = [];
+    lastSeq = 0;
+  });
+
+  dlBtn.addEventListener('click', () => {
+    const blob = new Blob([allLines.join('\n')], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'klog-' + Date.now() + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  function appendLines(items) {
+    if (!items.length) return;
+    const frag = document.createDocumentFragment();
+    for (const it of items) {
+      const div = document.createElement('div');
+      div.className = 'line';
+      const ts = new Date(it.ts * 1000).toLocaleTimeString();
+      const tsSpan = document.createElement('span');
+      tsSpan.className = 'ts';
+      tsSpan.textContent = ts;
+      div.appendChild(tsSpan);
+      div.appendChild(document.createTextNode(it.line));
+      frag.appendChild(div);
+      allLines.push(ts + ' ' + it.line);
+      lastSeq = it.seq;
+    }
+    viewer.appendChild(frag);
+    /* Cap DOM at 4000 lines to stay snappy */
+    while (viewer.childNodes.length > 4000) viewer.removeChild(viewer.firstChild);
+    if (autoScroll) viewer.scrollTop = viewer.scrollHeight;
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/api/klogs?since=' + lastSeq, { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j.lines && j.lines.length) appendLines(j.lines);
+      status.textContent = 'buffered: ' + j.count + (j.paused ? ' • paused' : '');
+    } catch (_) {}
+  }
+
+  poll();
+  setInterval(poll, 1000);
+})();
+</script>
+<script>
+/* PS5 in-app WebKit ignores Cache-Control: no-store for anchor
+   navigation — bust caching at the URL level instead. */
+document.querySelectorAll('header a[href^="/"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    if (a.target === '_blank') return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return;
+    e.preventDefault();
+    var sep = href.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = href + sep + '_=' + Date.now();
+  });
+});
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+</script>
+</body>
+</html>

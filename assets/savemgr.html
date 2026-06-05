@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — SaveMgr</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #050505; color: #e8eefb; font-family: -apple-system, "Segoe UI", sans-serif; }
+  .chrome {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, #0d1424, #050913);
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    height: 48px;
+  }
+  .back {
+    color: #e8eefb; text-decoration: none;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 13px;
+  }
+  .back:hover { background: rgba(255,255,255,0.12); }
+  .title { font-size: 14px; color: #9aa6c4; }
+  .title strong { color: #e8eefb; }
+  iframe {
+    border: 0; width: 100%; height: calc(100vh - 48px);
+    display: block; background: #06060e;
+  }
+  .fallback {
+    padding: 24px; text-align: center; color: #9aa6c4;
+  }
+  .fallback a { color: #4cc9ff; }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<div class="chrome">
+  <a class="back" href="/">← Elf Arsenal</a>
+  <span class="title">🧄 <strong>Garlic SaveMgr</strong> · port 8082</span>
+</div>
+
+<iframe id="sm" title="SaveMgr"></iframe>
+<noscript>
+  <div class="fallback">
+    Open <a id="direct" href="http://your-ps5-ip:8082/">SaveMgr directly</a>.
+  </div>
+</noscript>
+
+<script>
+  (function(){
+    var host = location.hostname || 'localhost';
+    var url = 'http://' + host + ':8082/';
+    var f = document.getElementById('sm');
+    if (f) f.src = url;
+    var d = document.getElementById('direct');
+    if (d) d.href = url;
+  })();
+</script>
+
+</body>
+</html>

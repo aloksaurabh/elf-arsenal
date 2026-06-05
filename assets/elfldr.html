@@ -1,0 +1,357 @@
+<!-- Copyright (C) 2024 idlesauce
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING. If not, see
+<http://www.gnu.org/licenses/>. -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,"> <!-- dont request favicon -->
+    <link rel="stylesheet" href="xterm.min.css">  <!-- https://cdn.jsdelivr.net/npm/xterm@5.0.0/css/xterm.min.css" -->
+    <script src="xterm.min.js"></script> <!-- https://cdn.jsdelivr.net/npm/xterm@5.0.0/lib/xterm.min.js -->
+    <script src="xterm-addon-fit.min.js"></script> <!-- https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.1.0/lib/xterm-addon-fit.min.js -->
+    <title>⚡ Elf Arsenal · Payload Launcher ⚡</title>
+    <style>
+      :root {
+          --text-color-primary: #fff;
+          --text-color-secondary: #ccc;
+          --text-color-tertiary: #999;
+          --background-color-primary: #0b0c10;
+          --surface-color-primary: #252737;
+          --surface-color-secondary: #13151d;
+          --surface-color-hover: #a2a2a6;
+          --text-color-primary-hover: #303030;
+          --text-color-secondary-hover: #444;
+          --text-color-tertiary-hover: #555;
+          --btn-transition: background-color 0.3s ease;
+          --vh: 1vh;
+      }
+
+      body {
+          font-family: Arial, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: calc(100 * var(--vh) - 10vw);
+          margin: 0;
+          padding: 0;
+          background-color: var(--background-color-primary);
+          color: #fff;
+      }
+
+      #launcher {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 5vw;
+      }
+
+      .drop-zone {
+          width: 100%;
+          max-width: 400px;
+          height: 200px;
+          border: 2px dashed #ccc;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          margin: 20px auto;
+          padding: 20px;
+          cursor: pointer;
+          box-sizing: border-box;
+      }
+
+      .drop-zone.dragover {
+          border-color: #000;
+      }
+
+      h1 {
+          text-align: center;
+          margin-top: 0;
+      }
+
+      .btn {
+          padding: 1rem 2rem;
+          text-align: center;
+          cursor: pointer;
+          line-height: 1.5rem;
+          border-radius: 1rem;
+          background-color: var(--surface-color-primary);
+          border: none;
+          color: var(--text-color-primary);
+          transition: var(--btn-transition);
+          box-sizing: border-box;
+          width: 100%;
+          max-width: 400px;
+      }
+
+      .btn:hover {
+          background-color: var(--surface-color-hover);
+          color: var(--text-color-primary-hover);
+      }
+
+      .file-name {
+          margin: 10px 0;
+          font-size: 1rem;
+          color: var(--text-color-secondary);
+      }
+
+      .input-box {
+          padding: 1rem;
+          text-align: center;
+          border-radius: 1rem;
+          background-color: var(--surface-color-secondary);
+          border: none;
+          color: var(--text-color-primary);
+          box-sizing: border-box;
+          width: 100%;
+          max-width: 400px;
+          margin: 10px 0;
+      }
+
+      .input-box.invalid {
+          outline: 2px solid red;
+      }
+
+      .checkbox-container {
+          display: flex;
+          align-items: center;
+          /* margin: 10px 0; */
+          margin-top: 10px;
+      }
+
+      .checkbox-container input {
+          margin-right: 10px;
+      }
+      .topnav {
+          position: fixed;
+          top: 12px; left: 12px; right: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          z-index: 100;
+          pointer-events: none;
+      }
+      .topnav a {
+          pointer-events: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          color: var(--text-color-secondary);
+          background: rgba(20, 24, 36, 0.85);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 999px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          transition: background 0.15s, color 0.15s;
+      }
+      .topnav a:hover {
+          background: rgba(76, 201, 255, 0.18);
+          color: var(--text-color-primary);
+      }
+      .topnav .spacer { flex: 1; }
+    </style>
+    <link rel="stylesheet" href="/verbadge.css">
+    <script src="/verbadge.js" defer></script>
+    <script src="/i18n.js" defer></script>
+  </head>
+
+  <body>
+    <nav class="topnav">
+      <a href="/" title="Back to home">← Home</a>
+      <a href="/homebrew">Homebrew</a>
+      <a href="/klog">Klog</a>
+      <a href="/stats">Stats</a>
+      <a href="/pkgzone" title="Browse and install PS5 homebrew">🛒 PKG Zone</a>
+      <a href="/files">📁 Files</a>
+      <a href="/?settings=open" title="Open Elf Arsenal settings">⚙ Settings</a>
+      <span class="spacer"></span>
+      <a id="elfldr-savemgr" href="#" target="_blank" rel="noopener"
+         title="Open Garlic SaveMgr (port 8082)">SaveMgr</a>
+      <script>
+        (function(){
+          var el = document.getElementById('elfldr-savemgr');
+          if (el) el.href = 'http://' + location.hostname + ':8082/';
+        })();
+        /* Defeat PS5 in-app WebKit bfcache + HTTP cache that ignore
+           `Cache-Control: no-store` (see launcher.html for context). */
+        document.querySelectorAll('.topnav a[href^="/"]').forEach(function(a) {
+          a.addEventListener('click', function(e) {
+            if (a.target === '_blank') return;
+            var href = a.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            e.preventDefault();
+            var sep = href.indexOf('?') >= 0 ? '&' : '?';
+            window.location.href = href + sep + '_=' + Date.now();
+          });
+        });
+        window.addEventListener('pageshow', function(e) {
+          if (e.persisted) window.location.reload();
+        });
+      </script>
+    </nav>
+    <div id="launcher">
+      <h1>Payload launcher</h1>
+      <div class="drop-zone" id="drop-zone">
+	Drag & drop a payload,
+	or click to select one...
+      </div>
+      <input type="file" id="file-input" style="display: none;" accept=".bin, .elf">
+      <div class="file-name" id="file-name">No payload selected</div>
+      <input type="text" id="args-input" class="input-box" placeholder="Optional command line arguments...">
+      <a class="btn" id="send-btn">Send</a>
+    </div>
+    <div id="stdout" class="terminal" style="display: none; height: 90vh; width: 95vw; padding-top: 5vh;"/>
+    <script>
+      // workaround for mobile browsers reporting vh with the address bar collapsed
+      function setViewportHeight() {
+          let vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      setViewportHeight();
+
+      window.addEventListener('resize', () => {
+          setViewportHeight();
+      });
+
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const argsInput = document.getElementById('args-input');
+      const fileNameDisplay = document.getElementById('file-name');
+      const sendBtn = document.getElementById('send-btn');
+      let selectedFile = null;
+
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('dragover');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          if (files.length) {
+              fileInput.files = files;
+              if (validateFile(files[0])) {
+                  selectedFile = files[0];
+                  fileNameDisplay.textContent = selectedFile.name;
+              } else {
+                  alert('Invalid file type. Only .bin and .elf files are allowed.');
+                  fileNameDisplay.textContent = 'No file selected';
+                  selectedFile = null;
+              }
+          }
+      });
+
+      fileInput.addEventListener('change', () => {
+          if (fileInput.files.length) {
+              if (validateFile(fileInput.files[0])) {
+                  selectedFile = fileInput.files[0];
+                  fileNameDisplay.textContent = selectedFile.name;
+              } else {
+                  alert('Invalid file type. Only .bin and .elf files are allowed.');
+                  fileNameDisplay.textContent = 'No file selected';
+                  selectedFile = null;
+              }
+          }
+      });
+
+      sendBtn.addEventListener('click', () => {
+          if (!selectedFile) {
+	      alert('No file selected.');
+	      return;
+	  }
+
+	  var args = selectedFile.name.replace(/ /g, "\\ ");
+	  const regex = /"([^"]+)"|(\S+)/g;
+	  let match;
+	  while((match=regex.exec(argsInput.value)) !== null) {
+              let arg = match[1] || match[2];
+              if (arg.includes(' ')) {
+		  arg = arg.replace(/ /g, '\\ ');
+              }
+	      args = args + " " + arg;
+	  }
+	  
+	  deploy(selectedFile, args);
+      });
+
+      function validateFile(file) {
+          const allowedExtensions = ['.bin', '.elf'];
+          const fileExtension = file.name.split('.').pop().toLowerCase();
+          return allowedExtensions.includes(`.${fileExtension}`);
+      }
+
+      async function deploy(elf, args='') {
+	  const launcher = document.getElementById('launcher');
+	  launcher.style.display = 'none';
+	  stdout.style.display = 'block';
+
+	  let form = new FormData();
+	  form.append('elf', elf);
+	  form.append('args', args);
+	  form.append('pipe', '1');
+
+	  const fitAddon = new FitAddon.FitAddon();
+	  const term = new Terminal({
+	      convertEol: true,
+	      altClickMovesCursor: false,
+	      disableStdin: true,
+	      fontSize: 18,
+	      cols: 90,
+	      rows: 25
+	  });
+
+	  term.open(stdout);
+	  term.loadAddon(fitAddon);
+	  fitAddon.fit();
+	  term.write("$ " + args + "\n");
+
+	  let response = await fetch('/elfldr', {
+              body: form,
+              method: "post"
+	  });
+
+	  try {
+	      const reader = response.body.getReader();
+	      const decoder = new TextDecoder();
+
+	      while (true) {
+		  const { done, value } = await reader.read();
+		  if (done) {
+		      break;
+		  }
+		  let decodedValue = decoder.decode(value);
+		  term.write(decodedValue);
+	      }
+	  } catch (error) {
+	  }
+      }
+    </script>
+  </body>
+</html>

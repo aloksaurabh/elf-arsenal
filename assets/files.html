@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>⚡ Elf Arsenal · File Manager</title>
+  <style>
+    :root {
+      --bg-0: #07090f;
+      --bg-1: #0e1422;
+      --fg-0: #ecf2ff;
+      --fg-1: #95a3c2;
+      --accent: #4cc9ff;
+      --accent-soft: rgba(76,201,255,0.18);
+      --accent-glow: rgba(76,201,255,0.45);
+      --row-hover: rgba(255,255,255,0.06);
+      --row-sel: rgba(76,201,255,0.18);
+      --danger: #ff5675;
+      --ok: #6bff9c;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 600px at 30% -10%, rgba(76,201,255,0.08) 0, transparent 60%) var(--bg-0);
+      color: var(--fg-0);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px) saturate(1.4);
+      background: rgba(7,9,15,0.78);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .header-inner {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 14px 22px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; letter-spacing: 0.4px; color: var(--fg-0);
+      text-decoration: none;
+    }
+    .brand-dot { width: 10px; height: 10px; border-radius: 50%;
+                 background: var(--accent);
+                 box-shadow: 0 0 14px var(--accent-glow); }
+    .nav-actions { margin-left: auto; display: flex; gap: 8px; }
+    .nav-actions a, .nav-actions button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--fg-1);
+      border: 1px solid rgba(255,255,255,0.08);
+      font: inherit; font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .nav-actions a:hover, .nav-actions button:hover {
+      background: var(--accent-soft); color: var(--fg-0);
+      border-color: rgba(76,201,255,0.3);
+    }
+
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 18px 22px 80px;
+    }
+
+    .actions-bar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      background: linear-gradient(180deg, rgba(20,28,48,0.85) 0%, rgba(13,20,36,0.85) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+    }
+    .actions-bar .grow { flex: 1; }
+    .actions-bar button {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--fg-0); font: inherit; font-size: 13px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .actions-bar button:hover:not(:disabled) {
+      background: var(--accent-soft);
+      border-color: rgba(76,201,255,0.4);
+    }
+    .actions-bar button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .actions-bar .danger { border-color: rgba(255,86,117,0.45); color: #ffd0d8; }
+    .actions-bar .danger:hover:not(:disabled) {
+      background: rgba(255,86,117,0.18); border-color: var(--danger);
+    }
+    .actions-bar .primary {
+      background: var(--accent); color: #001621;
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(76,201,255,0.35);
+    }
+    .actions-bar .primary:hover:not(:disabled) {
+      background: #66d6ff;
+    }
+
+    .panes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 980px) { .panes { grid-template-columns: 1fr; } }
+    /* Mobile (Elf Arsenal Remote APK + phone browsers).
+       The desktop .row uses a 4-col grid (22px checkbox / 1fr name /
+       100px size / 130px mtime) which sums to ~262 px of fixed cols —
+       blows past 360 px phones. Collapse to two visual lines on phone:
+       row 1 = checkbox + name only, row 2 (under, dim) = size · mtime. */
+    @media (max-width: 540px) {
+      html { font-size: 15px; }
+      body { padding: 0 10px; }
+      .panes { gap: 10px; }
+      .panel-head { font-size: 13px; }
+
+      /* Header: stack title on its own line, nav on the next.
+         Without this the title competes with 3 nav buttons for
+         420px of width and ends up wrapping into a 3-line mess. */
+      .header-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 10px 12px !important;
+      }
+      .brand {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nav-actions {
+        margin-left: 0 !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        flex-wrap: nowrap !important;
+        padding-bottom: 2px;
+      }
+      .nav-actions a, .nav-actions button {
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 6px 11px !important;
+      }
+
+      .row {
+        grid-template-columns: 22px 1fr !important;
+        grid-template-rows: auto auto;
+        padding: 9px 10px !important;
+        gap: 4px 8px !important;
+        font-size: 13px;
+      }
+      .row .ico { grid-column: 1; grid-row: 1; }
+      .row .name {
+        grid-column: 2;
+        grid-row: 1;
+        white-space: normal !important;
+        overflow-wrap: break-word;
+      }
+      /* Size + mtime collapse into one meta line below the name. */
+      .row .size, .row .mtime {
+        grid-column: 2;
+        grid-row: 2;
+        text-align: left !important;
+        font-size: 10px !important;
+        opacity: 0.7;
+      }
+      .row .size::after { content: ' · '; opacity: 0.5; }
+
+      button, .btn { padding: 9px 14px; font-size: 14px; min-height: 38px; }
+      code, pre { word-break: break-all; white-space: pre-wrap; }
+    }
+
+    .pane {
+      background: linear-gradient(180deg, rgba(20,28,48,0.85) 0%, rgba(13,20,36,0.85) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      min-height: 540px;
+    }
+    .pane-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .pane-title {
+      font-weight: 700; font-size: 13px; letter-spacing: 0.3px;
+      color: var(--fg-1); text-transform: uppercase;
+    }
+    .pane-path {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .pane-path input {
+      flex: 1; min-width: 0;
+      background: rgba(0,0,0,0.35);
+      color: var(--fg-0);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit; font-size: 13px;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      outline: none;
+    }
+    .pane-path input:focus { border-color: var(--accent); }
+    .pane-path button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--fg-1);
+      font: inherit; font-size: 13px;
+      cursor: pointer;
+    }
+    .pane-path button:hover { color: var(--fg-0); background: var(--row-hover); }
+
+    .shortcuts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .shortcuts button {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--fg-1);
+      font: inherit; font-size: 11px;
+      cursor: pointer;
+    }
+    .shortcuts button:hover { color: var(--fg-0); background: var(--accent-soft); }
+
+    .pane-list {
+      flex: 1;
+      overflow: auto;
+      padding: 6px 0;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 22px 1fr 100px 130px;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      user-select: none;
+    }
+    .row:hover { background: var(--row-hover); }
+    .row.selected { background: var(--row-sel); }
+    .row.parent { color: var(--fg-1); font-style: italic; }
+    .row .name {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .row .size, .row .mtime {
+      font-size: 11px; color: var(--fg-1);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      text-align: right;
+    }
+    .row.dir .name { font-weight: 600; }
+    .row .ico {
+      width: 18px; height: 18px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .pane-foot {
+      padding: 8px 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; gap: 10px;
+      font-size: 11px; color: var(--fg-1);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+    .pane-foot .grow { flex: 1; }
+
+    .loading-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(7,9,15,0.55);
+      backdrop-filter: blur(2px);
+      z-index: 5;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-overlay .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: ldspin 0.8s linear infinite;
+    }
+    @keyframes ldspin { to { transform: rotate(360deg); } }
+    .loading-overlay .text {
+      color: var(--fg-0);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .loading-overlay .sub {
+      color: var(--fg-1);
+      font-size: 11px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      max-width: 80%;
+      text-align: center;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* Need .pane to be a positioning context for the overlay. */
+    .pane { position: relative; }
+
+    .progress-card {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(124,162,255,0.18) 0%, rgba(76,201,255,0.16) 100%);
+      border: 1px solid rgba(124,162,255,0.45);
+      border-radius: 14px;
+    }
+    .progress-head {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+    }
+    .progress-head .verb {
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+      font-size: 12px; color: #cfe0ff;
+      padding: 2px 8px; border-radius: 999px;
+      background: rgba(124,162,255,0.25);
+      border: 1px solid rgba(124,162,255,0.45);
+    }
+    .progress-head .current {
+      flex: 1;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--fg-1);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .progress-head button {
+      padding: 6px 14px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,86,117,0.15); color: #ffd0d8;
+      font: inherit; font-size: 12px; cursor: pointer;
+    }
+    .progress-head button:hover { background: rgba(255,86,117,0.3); }
+    progress { width: 100%; height: 8px; }
+    .progress-stats {
+      display: flex; gap: 14px;
+      margin-top: 8px;
+      font-size: 12px; color: var(--fg-1);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%; bottom: 36px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15,22,40,0.94);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--fg-0);
+      padding: 12px 22px;
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s, transform 0.2s;
+      font-size: 14px; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok    { border-color: rgba(107,255,156,0.4); }
+    .toast.err   { border-color: rgba(255,86,117,0.45); }
+  </style>
+  <link rel="stylesheet" href="/verbadge.css">
+  <script src="/verbadge.js" defer></script>
+  <script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="brand" href="/" title="Back to home">
+      <span class="brand-dot"></span>
+      Elf Arsenal · File Manager
+    </a>
+    <div class="nav-actions">
+      <a href="/">🏠 Home</a>
+      <a href="/homebrew">Homebrew</a>
+      <a href="/elfldr">ELF Loader</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="actions-bar">
+    <button id="btn-copy">📄 Copy →</button>
+    <button id="btn-copy-back">← Copy</button>
+    <button id="btn-move">➜ Move →</button>
+    <button id="btn-move-back">← Move</button>
+    <button id="btn-mkdir-l">📁 New folder (Left)</button>
+    <button id="btn-mkdir-r">📁 New folder (Right)</button>
+    <button id="btn-rename">✎ Rename</button>
+    <button class="danger" id="btn-delete">🗑 Delete</button>
+    <span class="grow"></span>
+    <button id="btn-upload-files">⬆ Upload files…</button>
+    <button id="btn-upload-folder">⬆ Upload folder…</button>
+    <button id="btn-refresh">⟳ Refresh</button>
+  </div>
+  <!-- Hidden file inputs driven by the Upload buttons. webkitdirectory
+       lets the browser hand us every file inside a chosen folder, with
+       File.webkitRelativePath set so we can preserve the tree on the
+       PS5 side. The properties are also set via JS at boot for the
+       browsers that don't honor the boolean attribute from HTML. -->
+  <input type="file" id="upload-files-picker"  multiple  style="display:none" />
+  <input type="file" id="upload-folder-picker" multiple webkitdirectory directory mozdirectory style="display:none" />
+  <!-- Drop zone for drag-and-drop folder/file uploads. Works in browsers
+       that don't honor input.webkitdirectory (older WebKit) — uses
+       DataTransferItem.webkitGetAsEntry() to walk the dropped tree. -->
+  <div id="upload-dropzone"
+       style="display:none; margin:10px 0 0; padding:18px;
+              border:2px dashed rgba(255,255,255,0.18); border-radius:10px;
+              text-align:center; color:var(--fg-1); font-size:13px;">
+    Or drag &amp; drop files / folders here to upload them to the active pane.
+  </div>
+  <div id="upload-progress" style="display:none; margin:10px 0 0; padding:10px 12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:10px;">
+    <div id="upload-progress-text" style="font-size:13px; color:var(--fg-0); margin-bottom:6px;"></div>
+    <div style="height:6px; border-radius:3px; background:rgba(255,255,255,0.06); overflow:hidden;">
+      <div id="upload-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent), #6bff9c); transition:width .15s;"></div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button id="upload-progress-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="panes">
+    <section class="pane" data-side="L">
+      <div class="pane-head">
+        <div class="pane-title">Left</div>
+        <div class="pane-path">
+          <button class="up">↑ Up</button>
+          <input type="text" class="path-input" value="/data" />
+          <button class="go">Go</button>
+        </div>
+        <div class="shortcuts"></div>
+      </div>
+      <div class="pane-list"></div>
+      <div class="pane-foot">
+        <span class="count">…</span>
+        <span class="grow"></span>
+        <span class="sel">0 selected</span>
+      </div>
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="text">Please wait — opening folder…</div>
+        <div class="sub"></div>
+      </div>
+    </section>
+    <section class="pane" data-side="R">
+      <div class="pane-head">
+        <div class="pane-title">Right</div>
+        <div class="pane-path">
+          <button class="up">↑ Up</button>
+          <input type="text" class="path-input" value="/mnt/usb0" />
+          <button class="go">Go</button>
+        </div>
+        <div class="shortcuts"></div>
+      </div>
+      <div class="pane-list"></div>
+      <div class="pane-foot">
+        <span class="count">…</span>
+        <span class="grow"></span>
+        <span class="sel">0 selected</span>
+      </div>
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="text">Please wait — opening folder…</div>
+        <div class="sub"></div>
+      </div>
+    </section>
+  </div>
+
+  <section id="progress-card" class="progress-card" style="display:none;">
+    <div class="progress-head">
+      <span class="verb" id="prog-verb">copy</span>
+      <span class="current" id="prog-current">…</span>
+      <button id="prog-cancel">Cancel</button>
+    </div>
+    <progress id="prog-bar" value="0" max="100"></progress>
+    <div class="progress-stats">
+      <span id="prog-bytes">0 / 0</span>
+      <span id="prog-files">0 / 0 files</span>
+      <span id="prog-rate">— /s</span>
+      <span id="prog-eta">eta —</span>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+  // ───── Helpers ─────
+  const fmt = n => {
+    n = Number(n) || 0;
+    if (n >= 1024*1024*1024) return (n/1024/1024/1024).toFixed(2) + ' GiB';
+    if (n >= 1024*1024)      return (n/1024/1024).toFixed(2) + ' MiB';
+    if (n >= 1024)           return (n/1024).toFixed(1) + ' KiB';
+    return n + ' B';
+  };
+  const fmtTime = sec => {
+    if (!Number.isFinite(sec) || sec < 0) return '—';
+    if (sec < 60)    return sec.toFixed(0) + 's';
+    if (sec < 3600)  return Math.floor(sec/60) + 'm ' + (sec%60|0) + 's';
+    return Math.floor(sec/3600) + 'h ' + Math.floor((sec%3600)/60) + 'm';
+  };
+  const dateStr = epoch => {
+    if (!epoch) return '';
+    try { return new Date(epoch*1000).toLocaleString(); } catch (e) { return ''; }
+  };
+
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg, kind) {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + (kind || '');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.className = 'toast ' + (kind||''); }, 3000);
+  }
+
+  // ───── Pane abstraction ─────
+  function makePane(root) {
+    const pathInput = root.querySelector('.path-input');
+    const list = root.querySelector('.pane-list');
+    const goBtn = root.querySelector('.go');
+    const upBtn = root.querySelector('.up');
+    const countEl = root.querySelector('.count');
+    const selEl = root.querySelector('.sel');
+    const shortcutsEl = root.querySelector('.shortcuts');
+    const overlay = root.querySelector('.loading-overlay');
+    const overlayText = overlay.querySelector('.text');
+    const overlaySub  = overlay.querySelector('.sub');
+
+    const state = {
+      path: pathInput.value || '/data',
+      entries: [],
+      selected: new Set(),
+      lastClicked: null,
+      inflight: null,    /* AbortController for the current list fetch */
+      navStartedAt: 0,
+      slowTimer: null,
+      verySlowTimer: null,
+    };
+
+    function showOverlay(p) {
+      overlay.classList.add('show');
+      overlayText.textContent = 'Please wait — opening folder…';
+      overlaySub.textContent  = p;
+      state.navStartedAt = Date.now();
+      clearTimeout(state.slowTimer);
+      clearTimeout(state.verySlowTimer);
+      state.slowTimer = setTimeout(() => {
+        overlayText.textContent = 'Still working — large folder, indexing…';
+      }, 2000);
+      state.verySlowTimer = setTimeout(() => {
+        overlayText.textContent = 'Almost there — thousands of files take a moment.';
+      }, 6000);
+    }
+
+    function hideOverlay() {
+      overlay.classList.remove('show');
+      clearTimeout(state.slowTimer);
+      clearTimeout(state.verySlowTimer);
+    }
+
+    function renderShortcuts(usbList) {
+      const items = [
+        { label: '/data',         path: '/data' },
+        { label: '/mnt/ext1',     path: '/mnt/ext1' },
+        { label: '/system_data',  path: '/system_data' },
+        { label: '/user',         path: '/user' },
+      ];
+      for (const m of usbList || []) {
+        items.push({ label: m.path + (m.writable ? ' (rw)' : ' (ro)'), path: m.path });
+      }
+      shortcutsEl.innerHTML = '';
+      items.forEach(it => {
+        const b = document.createElement('button');
+        b.textContent = it.label;
+        b.addEventListener('click', () => navigateTo(it.path));
+        shortcutsEl.appendChild(b);
+      });
+    }
+
+    async function navigateTo(p) {
+      if (!p) p = '/';
+      if (!p.startsWith('/')) p = '/' + p;
+      state.path = p.replace(/\/+$/,'') || '/';
+      pathInput.value = state.path;
+      state.selected.clear();
+
+      /* Abort any prior list fetch — keeps the UI responsive when
+         the user clicks several folders quickly. */
+      if (state.inflight) state.inflight.abort();
+      const ctrl = new AbortController();
+      state.inflight = ctrl;
+
+      showOverlay(state.path);
+      try {
+        /* Fast mode: only name + dir flag, no per-entry lstat on the
+           server. This is what makes 5k-file folders open quickly. */
+        const r = await fetch(
+          '/api/fs/list?path=' + encodeURIComponent(state.path) + '&fast=1',
+          { signal: ctrl.signal }
+        );
+        const j = await r.json();
+        if (state.inflight !== ctrl) return; /* superseded */
+        if (!j.ok) {
+          list.innerHTML = '<div style="padding:18px;color:var(--danger);">'
+                         + (j.error || 'failed') + '</div>';
+          countEl.textContent = '!';
+          hideOverlay();
+          return;
+        }
+        state.entries = (j.entries || []).slice();
+        state.entries.sort((a,b) => {
+          if (a.dir !== b.dir) return a.dir ? -1 : 1;
+          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+        });
+        renderList();
+        hideOverlay();
+        /* Schedule a lazy-load pass for sizes/mtimes of the visible rows. */
+        scheduleStatPass();
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        list.innerHTML = '<div style="padding:18px;color:var(--danger);">' + e.message + '</div>';
+        hideOverlay();
+      } finally {
+        if (state.inflight === ctrl) state.inflight = null;
+      }
+    }
+
+    /* Lazy-stat: walks visible rows and fetches size/mtime for any
+       entry that doesn't have them yet, with an IntersectionObserver
+       so off-screen rows don't fire. Called once after each render. */
+    let statObserver = null;
+    function scheduleStatPass() {
+      if (statObserver) statObserver.disconnect();
+      statObserver = new IntersectionObserver(async (visible) => {
+        for (const v of visible) {
+          if (!v.isIntersecting) continue;
+          const row = v.target;
+          const name = row.dataset.name;
+          if (!name || row.dataset.statted === '1') continue;
+          row.dataset.statted = '1';
+          statObserver.unobserve(row);
+          /* Skip if this is a directory — we don't show size for dirs. */
+          if (row.classList.contains('dir')) continue;
+          try {
+            const full = joinPath(state.path, name);
+            const r = await fetch('/api/fs/stat?path=' + encodeURIComponent(full));
+            const j = await r.json();
+            if (j.ok) {
+              row.querySelector('.size').textContent  = fmt(j.size);
+              row.querySelector('.mtime').textContent = dateStr(j.mtime);
+            }
+          } catch (e) { /* ignore */ }
+        }
+      }, { root: list, rootMargin: '200px' });
+      list.querySelectorAll('.row.file').forEach(r => statObserver.observe(r));
+    }
+
+    function renderList() {
+      list.innerHTML = '';
+      // Up row
+      if (state.path !== '/' && state.path !== '') {
+        const r = document.createElement('div');
+        r.className = 'row parent';
+        r.innerHTML = '<span class="ico">↩</span><span class="name">..</span><span class="size"></span><span class="mtime"></span>';
+        r.addEventListener('dblclick', () => parent());
+        r.addEventListener('click', () => parent());
+        list.appendChild(r);
+      }
+      for (const ent of state.entries) {
+        const r = document.createElement('div');
+        r.className = 'row ' + (ent.dir ? 'dir' : 'file');
+        r.dataset.name = ent.name;
+        if (state.selected.has(ent.name)) r.classList.add('selected');
+        const icon = ent.dir ? '📁' : '📄';
+        const sizeStr = ent.dir ? '—'
+                                : (Number.isFinite(ent.size) ? fmt(ent.size) : '…');
+        const mtimeStr = Number.isFinite(ent.mtime) ? dateStr(ent.mtime) : '';
+        r.innerHTML =
+          '<span class="ico">' + icon + '</span>' +
+          '<span class="name"></span>' +
+          '<span class="size">' + sizeStr + '</span>' +
+          '<span class="mtime">' + mtimeStr + '</span>';
+        r.querySelector('.name').textContent = ent.name;
+        r.addEventListener('click', e => onRowClick(ent, e));
+        r.addEventListener('dblclick', () => {
+          if (ent.dir) navigateTo(joinPath(state.path, ent.name));
+        });
+        list.appendChild(r);
+      }
+      countEl.textContent = state.entries.length + ' items';
+      updateSelection();
+    }
+
+    function onRowClick(ent, e) {
+      if (e.metaKey || e.ctrlKey) {
+        if (state.selected.has(ent.name)) state.selected.delete(ent.name);
+        else                              state.selected.add(ent.name);
+      } else if (e.shiftKey && state.lastClicked) {
+        const i1 = state.entries.findIndex(x => x.name === state.lastClicked);
+        const i2 = state.entries.findIndex(x => x.name === ent.name);
+        if (i1 >= 0 && i2 >= 0) {
+          const lo = Math.min(i1,i2), hi = Math.max(i1,i2);
+          for (let i = lo; i <= hi; i++) state.selected.add(state.entries[i].name);
+        }
+      } else {
+        state.selected.clear();
+        state.selected.add(ent.name);
+      }
+      state.lastClicked = ent.name;
+      renderList();
+    }
+
+    function updateSelection() {
+      selEl.textContent = state.selected.size + ' selected';
+    }
+
+    function parent() {
+      let p = state.path;
+      if (!p || p === '/') return;
+      const idx = p.lastIndexOf('/');
+      navigateTo(idx <= 0 ? '/' : p.slice(0, idx));
+    }
+
+    goBtn.addEventListener('click', () => navigateTo(pathInput.value));
+    pathInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') navigateTo(pathInput.value);
+    });
+    upBtn.addEventListener('click', parent);
+
+    return {
+      state,
+      navigateTo,
+      renderShortcuts,
+      refresh: () => navigateTo(state.path),
+      get path()      { return state.path; },
+      get selected()  { return [...state.selected]; },
+    };
+  }
+
+  function joinPath(a, b) {
+    if (!a || a === '/') return '/' + b;
+    return a.replace(/\/+$/,'') + '/' + b;
+  }
+
+  // ───── Build panes ─────
+  const panes = document.querySelectorAll('.pane');
+  const Lpane = makePane(panes[0]);
+  const Rpane = makePane(panes[1]);
+  Lpane.navigateTo('/data');
+  Rpane.navigateTo('/mnt/usb0');
+
+  // Probe USB and inject into each pane's shortcut row.
+  fetch('/api/fs/usb').then(r => r.json()).then(j => {
+    Lpane.renderShortcuts(j.mounts || []);
+    Rpane.renderShortcuts(j.mounts || []);
+  }).catch(() => {});
+
+  // ───── Toolbar ops ─────
+  function activePaneAndOther() {
+    // The "source" pane is whichever was clicked last (has selection).
+    if (Lpane.selected.length > 0) return [Lpane, Rpane];
+    if (Rpane.selected.length > 0) return [Rpane, Lpane];
+    return [Lpane, Rpane];
+  }
+
+  async function startCopyOrMove(verb, src, dst) {
+    try {
+      const r = await fetch('/api/fs/' + verb +
+                            '?src=' + encodeURIComponent(src) +
+                            '&dst=' + encodeURIComponent(dst));
+      const j = await r.json();
+      if (!j.ok) {
+        showToast(verb + ' failed: ' + (j.error || 'unknown'), 'err');
+        return;
+      }
+      showToast(verb + ' started', 'ok');
+      pollJob();
+    } catch (e) {
+      showToast(verb + ': ' + e.message, 'err');
+    }
+  }
+
+  async function doTransfer(verb, fromPane, toPane) {
+    const sel = fromPane.selected;
+    if (!sel.length) {
+      showToast('Select something on the source side first', 'err');
+      return;
+    }
+    if (sel.length > 1) {
+      showToast(sel.length + ' items — running ' + verb + ' one at a time', 'ok');
+    }
+    for (const name of sel) {
+      const src = joinPath(fromPane.path, name);
+      await startCopyOrMove(verb, src, toPane.path);
+      // wait for current job to finish before queuing next
+      await waitJobIdle();
+    }
+    fromPane.refresh(); toPane.refresh();
+  }
+
+  document.getElementById('btn-copy').addEventListener('click', () =>
+    doTransfer('copy', Lpane, Rpane));
+  document.getElementById('btn-copy-back').addEventListener('click', () =>
+    doTransfer('copy', Rpane, Lpane));
+  document.getElementById('btn-move').addEventListener('click', () =>
+    doTransfer('move', Lpane, Rpane));
+  document.getElementById('btn-move-back').addEventListener('click', () =>
+    doTransfer('move', Rpane, Lpane));
+
+  document.getElementById('btn-delete').addEventListener('click', async () => {
+    const [src] = activePaneAndOther();
+    const sel = src.selected;
+    if (!sel.length) { showToast('Select something to delete', 'err'); return; }
+    if (!confirm('Delete ' + sel.length + ' item(s) from ' + src.path + '?\n\n' +
+                 sel.join('\n') +
+                 '\n\nThis cannot be undone.')) return;
+    for (const name of sel) {
+      const path = joinPath(src.path, name);
+      try {
+        const r = await fetch('/api/fs/delete?path=' + encodeURIComponent(path) +
+                              '&recursive=1');
+        const j = await r.json();
+        if (!j.ok) showToast('delete: ' + (j.error || 'failed'), 'err');
+        else { showToast('Deleting ' + name, 'ok'); pollJob(); }
+        await waitJobIdle();
+      } catch (e) { showToast('delete: ' + e.message, 'err'); }
+    }
+    src.refresh();
+  });
+
+  async function mkdirOn(pane, label) {
+    const name = prompt('New folder in ' + pane.path + ':');
+    if (!name) return;
+    const path = joinPath(pane.path, name);
+    try {
+      const r = await fetch('/api/fs/mkdir?path=' + encodeURIComponent(path));
+      const j = await r.json();
+      if (!j.ok) showToast(label + ' mkdir: ' + (j.error || 'failed'), 'err');
+      else      { showToast('Created ' + path, 'ok'); pane.refresh(); }
+    } catch (e) { showToast(label + ' mkdir: ' + e.message, 'err'); }
+  }
+  document.getElementById('btn-mkdir-l').addEventListener('click', () =>
+    mkdirOn(Lpane, 'Left'));
+  document.getElementById('btn-mkdir-r').addEventListener('click', () =>
+    mkdirOn(Rpane, 'Right'));
+
+  document.getElementById('btn-rename').addEventListener('click', async () => {
+    const [src] = activePaneAndOther();
+    const sel = src.selected;
+    if (sel.length !== 1) { showToast('Select exactly one item to rename', 'err'); return; }
+    const old = sel[0];
+    const fresh = prompt('Rename "' + old + '" to:', old);
+    if (!fresh || fresh === old) return;
+    const oldPath = joinPath(src.path, old);
+    const newPath = joinPath(src.path, fresh);
+    try {
+      const r = await fetch('/api/fs/rename?src=' + encodeURIComponent(oldPath) +
+                            '&dst=' + encodeURIComponent(newPath));
+      const j = await r.json();
+      if (!j.ok) showToast('rename: ' + (j.error || 'failed'), 'err');
+      else      { showToast('Renamed', 'ok'); src.refresh(); }
+    } catch (e) { showToast('rename: ' + e.message, 'err'); }
+  });
+
+  document.getElementById('btn-refresh').addEventListener('click', () => {
+    Lpane.refresh(); Rpane.refresh();
+  });
+
+  // ───── PC → PS5 upload (files / folder) ─────
+  const upBtnFiles  = document.getElementById('btn-upload-files');
+  const upBtnFolder = document.getElementById('btn-upload-folder');
+  const upPickFiles  = document.getElementById('upload-files-picker');
+  const upPickFolder = document.getElementById('upload-folder-picker');
+  const upCard      = document.getElementById('upload-progress');
+  const upText      = document.getElementById('upload-progress-text');
+  const upBar       = document.getElementById('upload-progress-bar');
+  const upCancel    = document.getElementById('upload-progress-cancel');
+
+  function fmtBytes(n) {
+    if (!Number.isFinite(n)) return '?';
+    if (n >= 1024*1024*1024) return (n/1024/1024/1024).toFixed(2) + ' GiB';
+    if (n >= 1024*1024)      return (n/1024/1024).toFixed(2)      + ' MiB';
+    if (n >= 1024)           return (n/1024).toFixed(1)           + ' KiB';
+    return n + ' B';
+  }
+  function safeBasename(name) {
+    return (name || '').split(/[\\/]/).pop().replace(/[^A-Za-z0-9._+\-]/g, '_');
+  }
+  function safeRelpath(rel) {
+    if (!rel) return '';
+    return rel.split('/').slice(0, -1)  // drop the file basename
+              .map(s => s.replace(/[^A-Za-z0-9._+\-]/g, '_'))
+              .filter(s => s && s !== '.' && s !== '..')
+              .join('/');
+  }
+
+  let upActiveXhr = null;
+  let upCancelled = false;
+  upCancel.addEventListener('click', () => {
+    upCancelled = true;
+    if (upActiveXhr) try { upActiveXhr.abort(); } catch (_) {}
+  });
+
+  function uploadOne(file, destDir, relpath) {
+    return new Promise((resolve, reject) => {
+      const xhr = upActiveXhr = new XMLHttpRequest();
+      const filename = safeBasename(file.name);
+      let qs = 'path=' + encodeURIComponent(destDir) +
+               '&filename=' + encodeURIComponent(filename);
+      if (relpath) qs += '&relpath=' + encodeURIComponent(relpath);
+      xhr.open('POST', '/api/fs/upload?' + qs);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = (e.loaded / e.total) * 100;
+          upBar.style.width = pct.toFixed(1) + '%';
+        }
+      };
+      xhr.onload = () => {
+        let j = {};
+        try { j = JSON.parse(xhr.responseText || '{}'); } catch (_) {}
+        if (xhr.status >= 200 && xhr.status < 300 && j.ok) resolve(j);
+        else reject(new Error(j.error || ('http ' + xhr.status)));
+      };
+      xhr.onerror = () => reject(new Error('network'));
+      xhr.onabort = () => reject(new Error('cancelled'));
+      xhr.send(file);
+    });
+  }
+
+  async function uploadFileList(files) {
+    if (!files || !files.length) return;
+    const [activePane, otherPane] = activePaneAndOther();
+    const dest = activePane.path;
+    if (!dest || dest[0] !== '/') {
+      showToast('No active pane to upload into', 'err');
+      return;
+    }
+    upCancelled = false;
+    upCard.style.display = '';
+    upBar.style.width = '0%';
+    upBtnFiles.disabled = upBtnFolder.disabled = true;
+
+    let okCount = 0, failCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      if (upCancelled) break;
+      const f = files[i];
+      const rel = safeRelpath(f.webkitRelativePath || '');
+      const label = (rel ? (rel + '/') : '') + f.name;
+      upText.textContent =
+        '(' + (i+1) + ' / ' + files.length + ') ' + label +
+        ' · ' + fmtBytes(f.size);
+      try {
+        await uploadOne(f, dest, rel);
+        okCount++;
+      } catch (e) {
+        if (e.message === 'cancelled') break;
+        failCount++;
+        console.warn('upload failed', label, e.message);
+      }
+    }
+
+    upActiveXhr = null;
+    upBtnFiles.disabled = upBtnFolder.disabled = false;
+    upText.textContent = upCancelled
+      ? ('Cancelled — ' + okCount + ' OK, ' + failCount + ' failed')
+      : (okCount + ' uploaded' + (failCount ? (', ' + failCount + ' failed') : ''));
+    showToast(upCancelled ? 'Upload cancelled'
+                          : (okCount + ' uploaded' + (failCount ? ' · ' + failCount + ' failed' : '')),
+              failCount && !okCount ? 'err' : 'ok');
+    activePane.refresh();
+    setTimeout(() => { upCard.style.display = 'none'; }, 4000);
+  }
+
+  /* Some browsers (older WebKit / PS5 / Safari mobile) don't honor the
+     boolean `webkitdirectory` attribute from HTML — they only respect
+     it when set as a property. Force it on at boot. */
+  try {
+    upPickFolder.webkitdirectory = true;
+    upPickFolder.directory       = true;
+  } catch (_) { /* property unsupported — falls back to drag-drop below */ }
+  const folderPickSupported =
+    'webkitdirectory' in HTMLInputElement.prototype;
+
+  upBtnFiles .addEventListener('click', () => upPickFiles.click());
+  upBtnFolder.addEventListener('click', () => {
+    if (!folderPickSupported) {
+      showToast('This browser doesn\'t support folder picking. Drag a ' +
+                'folder onto the dotted box, or use Upload files… and ' +
+                'shift-click to multi-select.', 'err');
+      // Reveal the drop zone for them.
+      const dz = document.getElementById('upload-dropzone');
+      if (dz) dz.style.display = '';
+      return;
+    }
+    upPickFolder.click();
+  });
+  upPickFiles .addEventListener('change', () => {
+    const list = Array.from(upPickFiles.files);
+    upPickFiles.value = '';
+    uploadFileList(list);
+  });
+  upPickFolder.addEventListener('change', () => {
+    const list = Array.from(upPickFolder.files);
+    upPickFolder.value = '';
+    if (!list.length) {
+      // Browser opened the picker but didn't return any files. Most
+      // likely cause on PS5 WebKit / older browsers: webkitdirectory
+      // wasn't honored, so the picker fell back to single-file mode
+      // with no selection. Reveal the drop zone so they have an
+      // alternative.
+      showToast('Folder picker returned 0 files — try dragging the folder ' +
+                'onto the dotted drop zone instead.', 'err');
+      const dz = document.getElementById('upload-dropzone');
+      if (dz) dz.style.display = '';
+      return;
+    }
+    uploadFileList(list);
+  });
+
+  // ───── Drag-and-drop folder/file upload ─────
+  // Walks every dropped item via DataTransferItem.webkitGetAsEntry() →
+  // recursive readEntries() so dropping a folder works on every
+  // browser (including PS5 WebKit) regardless of input.webkitdirectory
+  // support.
+  function walkEntry(entry, basePath) {
+    return new Promise((resolve) => {
+      if (entry.isFile) {
+        entry.file((f) => {
+          // Synthesize a webkitRelativePath so safeRelpath() still works.
+          try {
+            Object.defineProperty(f, 'webkitRelativePath', {
+              value: basePath + entry.name, configurable: true
+            });
+          } catch (_) { /* sealed File on some browsers — ignore */ }
+          resolve([f]);
+        }, () => resolve([]));
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const all = [];
+        const readBatch = () => {
+          reader.readEntries(async (entries) => {
+            if (!entries.length) { resolve(all); return; }
+            const parts = await Promise.all(entries.map(e =>
+              walkEntry(e, basePath + entry.name + '/')));
+            for (const p of parts) all.push.apply(all, p);
+            readBatch();  // readEntries can return in batches
+          }, () => resolve(all));
+        };
+        readBatch();
+      } else { resolve([]); }
+    });
+  }
+
+  const upDropZone = document.getElementById('upload-dropzone');
+  if (upDropZone) {
+    upDropZone.addEventListener('dragover',  (e) => {
+      e.preventDefault();
+      upDropZone.style.borderColor = 'var(--accent)';
+      upDropZone.style.color = 'var(--fg-0)';
+    });
+    upDropZone.addEventListener('dragleave', () => {
+      upDropZone.style.borderColor = 'rgba(255,255,255,0.18)';
+      upDropZone.style.color = 'var(--fg-1)';
+    });
+    upDropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      upDropZone.style.borderColor = 'rgba(255,255,255,0.18)';
+      upDropZone.style.color = 'var(--fg-1)';
+      const items = e.dataTransfer && e.dataTransfer.items;
+      if (!items || !items.length) {
+        showToast('Drop produced no items', 'err');
+        return;
+      }
+      const all = [];
+      const promises = [];
+      for (let i = 0; i < items.length; i++) {
+        const entry = items[i].webkitGetAsEntry
+          ? items[i].webkitGetAsEntry()
+          : null;
+        if (entry) promises.push(walkEntry(entry, ''));
+        else if (items[i].kind === 'file') {
+          const f = items[i].getAsFile();
+          if (f) all.push(f);
+        }
+      }
+      const trees = await Promise.all(promises);
+      for (const t of trees) all.push.apply(all, t);
+      if (!all.length) {
+        showToast('Dropped item had no readable files', 'err');
+        return;
+      }
+      uploadFileList(all);
+    });
+    // Also let the user drop on the document body — show the zone if
+    // they're dragging anything anywhere over the page.
+    document.addEventListener('dragenter', (e) => {
+      if (!e.dataTransfer) return;
+      upDropZone.style.display = '';
+    });
+  }
+
+  // ───── Job progress ─────
+  const card    = document.getElementById('progress-card');
+  const verbEl  = document.getElementById('prog-verb');
+  const curEl   = document.getElementById('prog-current');
+  const barEl   = document.getElementById('prog-bar');
+  const bytesEl = document.getElementById('prog-bytes');
+  const filesEl = document.getElementById('prog-files');
+  const rateEl  = document.getElementById('prog-rate');
+  const etaEl   = document.getElementById('prog-eta');
+  const cancelBtn = document.getElementById('prog-cancel');
+
+  let jobTimer = null, lastBytes = 0, lastTs = 0;
+
+  cancelBtn.addEventListener('click', () => {
+    fetch('/api/fs/job/cancel').catch(()=>{});
+  });
+
+  function pollJob() {
+    if (jobTimer) return;
+    lastBytes = 0; lastTs = 0;
+    jobTimer = setInterval(async () => {
+      try {
+        const r = await fetch('/api/fs/job/status');
+        const j = await r.json();
+        if (!j.ok) return;
+        if (j.busy || j.endedAt > 0) card.style.display = '';
+        verbEl.textContent = (j.verb || '—').toUpperCase();
+        curEl.textContent  = j.current || '';
+        const pct = j.totalBytes > 0 ? (j.copiedBytes * 100 / j.totalBytes) : 0;
+        barEl.value = Math.min(100, Math.max(0, pct));
+        bytesEl.textContent = fmt(j.copiedBytes) + ' / ' +
+                              (j.totalBytes ? fmt(j.totalBytes) : '?');
+        filesEl.textContent = j.doneFiles + ' / ' +
+                              (j.totalFiles || '?') + ' files' +
+                              (j.failedFiles ? ' · ' + j.failedFiles + ' failed' : '');
+        const now = Date.now()/1000;
+        if (lastTs > 0) {
+          const dt = now - lastTs;
+          const db = j.copiedBytes - lastBytes;
+          if (dt >= 0.5) {
+            const rate = db / dt;
+            rateEl.textContent = fmt(rate) + '/s';
+            const remain = j.totalBytes - j.copiedBytes;
+            etaEl.textContent  = 'eta ' + fmtTime(rate > 0 ? remain / rate : -1);
+            lastTs = now; lastBytes = j.copiedBytes;
+          }
+        } else { lastTs = now; lastBytes = j.copiedBytes; }
+        if (!j.busy && j.endedAt > 0) {
+          if (j.error) {
+            curEl.textContent = '❌ ' + j.error;
+            showToast(j.verb + ' failed: ' + j.error, 'err');
+          } else {
+            curEl.textContent = '✓ ' + (j.verb || 'job') + ' finished';
+            showToast(j.verb + ' done', 'ok');
+            Lpane.refresh(); Rpane.refresh();
+          }
+          clearInterval(jobTimer); jobTimer = null;
+        }
+      } catch (e) { /* swallow */ }
+    }, 500);
+  }
+
+  function waitJobIdle() {
+    return new Promise(resolve => {
+      const check = async () => {
+        try {
+          const r = await fetch('/api/fs/job/status');
+          const j = await r.json();
+          if (!j.busy) return resolve();
+        } catch (e) {}
+        setTimeout(check, 400);
+      };
+      check();
+    });
+  }
+
+  // Start with a status poll in case a job is already running.
+  fetch('/api/fs/job/status').then(r => r.json()).then(j => {
+    if (j.busy) pollJob();
+  }).catch(()=>{});
+})();
+</script>
+<script>
+/* PS5 in-app WebKit ignores Cache-Control: no-store for anchor
+   navigation — bust caching at the URL level instead. */
+document.querySelectorAll('header a[href^="/"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    if (a.target === '_blank') return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return;
+    e.preventDefault();
+    var sep = href.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = href + sep + '_=' + Date.now();
+  });
+});
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — Help</title>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg-0: #050913; --bg-1: #0d1424; --bg-2: #131b30;
+    --fg-0: #e8eefb; --fg-1: #9aa6c4;
+    --accent: #4cc9ff; --danger: #ff5675; --ok: #6bff9c;
+    --warn: #ffb347;
+    --bg-glow-a: #1a2440; --bg-glow-b: #163046;
+  }
+  html[data-theme="light"] {
+    --bg-0: #f3f6fc; --bg-1: #fff; --bg-2: #e9eef8;
+    --fg-0: #101724; --fg-1: #50607c;
+    --accent: #0066d6; --danger: #d12d49; --ok: #1d9d4f;
+    --warn: #b87100;
+    --bg-glow-a: #d6e3f6; --bg-glow-b: #e6efff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 18px 18px 64px;
+    background: radial-gradient(900px 600px at 75% -10%, var(--bg-glow-a) 0%, transparent 60%),
+                radial-gradient(800px 500px at -10% 110%, var(--bg-glow-b) 0%, transparent 55%),
+                var(--bg-0);
+    color: var(--fg-0);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+    max-width: 980px;
+  }
+  h1 { font-size: 22px; margin: 0; flex: 1; }
+  h2 {
+    font-size: 18px; margin: 26px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+  }
+  h3 {
+    font-size: 15px; margin: 18px 0 6px;
+    color: var(--fg-0);
+  }
+  p, li { color: var(--fg-1); }
+  p strong, li strong { color: var(--fg-0); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px; border-radius: 4px;
+    font-size: 90%;
+  }
+  main { max-width: 980px; }
+  .back {
+    background: var(--bg-2); color: var(--fg-0);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 13px;
+  }
+  .banner {
+    background: linear-gradient(135deg,
+      rgba(76,201,255,0.10), rgba(107,255,156,0.06));
+    border: 1px solid rgba(76,201,255,0.30);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+  .banner h2 {
+    margin-top: 0; border: none;
+    font-size: 17px;
+  }
+  .banner code { background: rgba(0,0,0,0.30); }
+  .warn {
+    background: rgba(255,179,71,0.10);
+    border: 1px solid rgba(255,179,71,0.35);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--warn);
+    margin: 10px 0;
+  }
+  details.feature {
+    background: var(--bg-1);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 8px 14px;
+    margin: 8px 0;
+  }
+  details.feature > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 6px 0;
+    font-weight: 600;
+    color: var(--fg-0);
+  }
+  details.feature > summary::-webkit-details-marker { display: none; }
+  details.feature[open] > summary {
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 8px;
+  }
+  .feature .icon { display: inline-block; width: 24px; }
+  ul { padding-left: 22px; }
+  .toc {
+    background: var(--bg-2);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+  .toc h3 { margin-top: 4px; font-size: 13px; color: var(--fg-1); text-transform: uppercase; letter-spacing: 0.05em; }
+  .toc ul { columns: 2; -webkit-columns: 2; margin: 6px 0 0; padding-left: 18px; }
+  .toc li { break-inside: avoid; }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<header>
+  <a class="back" href="/">← Back to launcher</a>
+  <h1>⚡ Elf Arsenal — Help</h1>
+</header>
+
+<main>
+
+<div class="banner">
+  <h2>Recommended PS5 DNS setup</h2>
+  <p>For Elf Arsenal to download new payloads, install Homebrew apps, run the Garlic Worker against the community save queue, and resolve community domains like <code>git.etawen.dev</code>, the PS5 needs a DNS server that <em>knows</em> these hosts. Sony's default DNS does not.</p>
+  <p><strong>Settings → Network → Set Up Internet Connection → Custom → DNS Settings → Manual</strong>, then put one of these in <strong>Primary DNS</strong>:</p>
+  <ul>
+    <li><code>127.0.0.1</code> — uses the bundled <strong>nanoDNS</strong> daemon (default ON, listens on the loopback interface). Works fully offline because it resolves community hosts to pinned IPs in <code>/data/nanodns/nanodns.ini</code>. Stops working if you turn nanoDNS off.</li>
+    <li><code>62.210.38.117</code> — <strong>Nomadic DNS</strong>, a community-run DNS service that mirrors the same community-host overrides. Use this if you prefer not to run nanoDNS, or as a fallback.</li>
+  </ul>
+  <p>Without one of these, the GitHub-release pickers (kstuff, SMP, Linux loader), the Homebrew installer, and the Garlic Worker queue all return DNS failures and look "broken." Everything else (sideloading, trophies, CheatRunner, the SDK rewriter, the auto-applied patches) keeps working without DNS.</p>
+</div>
+
+<div class="warn">
+  <strong>Upgrading from an older Elf Arsenal where the cheat engine was ON?</strong>
+  Flip <strong>Settings → 🎮 Cheat engine</strong> to <strong>OFF</strong> before using CheatRunner. Both read from the same <code>/data/cheatrunner/cheats/</code> tree, so running both engines on the same game can double-apply patches, fight over memory writes, and crash the title. The Elf Arsenal cheat engine defaults to OFF in fresh installs; upgrades retain the previous setting.
+</div>
+
+<div class="toc">
+  <h3>Settings sections covered</h3>
+  <ul>
+    <li><a href="#appearance">Appearance</a></li>
+    <li><a href="#hltb">How Long To Beat</a></li>
+    <li><a href="#kstuff">Kstuff &amp; auto-toggle</a></li>
+    <li><a href="#kstuff-updater">Kstuff updater</a></li>
+    <li><a href="#smp">ShadowMountPlus</a></li>
+    <li><a href="#cheats">Cheat engine + CheatRunner</a></li>
+    <li><a href="#auto-patches">Auto-apply patches</a></li>
+    <li><a href="#y2jb">Y2JB autoloader sync</a></li>
+    <li><a href="#payloads">Managed Payloads</a></li>
+    <li><a href="#pkgzone">PKG Zone catalog</a></li>
+    <li><a href="#backpork">BackPork</a></li>
+    <li><a href="#nanodns">nanoDNS</a></li>
+    <li><a href="#tile">Elf Arsenal pkg auto-update</a></li>
+    <li><a href="#dumper">App Dumper</a></li>
+    <li><a href="#homebrew">Homebrew installer</a></li>
+    <li><a href="#pkg-install">PKG Installer</a></li>
+    <li><a href="#ftp">FTP server</a></li>
+    <li><a href="#linux">PS5 Linux loader</a></li>
+    <li><a href="#bgsvc">Background services</a></li>
+    <li><a href="#fan">Fan control</a></li>
+    <li><a href="#avatar">Avatar Maker</a></li>
+    <li><a href="#np">NP fake sign-in / sign-out</a></li>
+    <li><a href="#backup">Backups &amp; restore</a></li>
+    <li><a href="#sdk-rewriter">Bulk SDK rewriter</a></li>
+    <li><a href="#np-restore">NP account restore</a></li>
+    <li><a href="#offline-act">Offline account activation</a></li>
+    <li><a href="#garlic">Garlic Worker &amp; SaveMgr</a></li>
+    <li><a href="#offline-pack">Offline pack</a></li>
+    <li><a href="#credits">Credits &amp; greetz</a></li>
+  </ul>
+</div>
+
+<h2 id="appearance">🎨 Appearance</h2>
+<p>Theme switcher (Dark, OLED true-black, Light, High-contrast) and a few layout knobs. Persists per device via local storage.</p>
+
+<h2 id="hltb">⏱ How Long To Beat</h2>
+<p>Pulls average completion times for the title under the spotlight from howlongtobeat.com. Needs DNS — same caveat as the banner up top.</p>
+
+<h2 id="kstuff">⚙ Kstuff &amp; auto-toggle</h2>
+<p><strong>Kstuff</strong> is the kernel-patches blob (sideload-launcher, lib-overrides) that lets jailbreak features run. Auto-toggle pauses kstuff when a stock game launches and resumes it when you leave the game, so anti-tamper checks inside retail titles don't see the patches.</p>
+<ul>
+  <li><strong>Auto on / Auto off</strong> — flip the watcher.</li>
+  <li><strong>Pause / Resume seconds</strong> — how long after launch / exit before flipping.</li>
+  <li><strong>Unsupported on this FW</strong> — the kstuff module didn't load for your firmware. Everything else in Elf Arsenal still works; only the kstuff-gated features (e.g. sideload patches) are off.</li>
+</ul>
+
+<h2 id="kstuff-updater">⬇ Kstuff updater</h2>
+<p>Two release feeds — <strong>EchoStretch/kstuff-lite</strong> (default) and <strong>drakmor/kstuff-lite</strong> (legacy/low-FW). Picker lists every published release; tap Install to fetch the ELF and write it to <code>/data/kstuff.elf</code>. Reboot Elf Arsenal afterward so the new kstuff loads. <em>Needs DNS.</em></p>
+
+<h2 id="smp">📀 ShadowMountPlus</h2>
+<p>The userspace shim that mounts dumped games at <code>/system_ex/app/&lt;TITLE&gt;/</code> so sideloaded titles look like installed PS5 games.</p>
+<ul>
+  <li><strong>Scan paths</strong> — where SMP looks for dumped games. Defaults cover <code>/data/homebrew</code>, <code>/data/etaHEN/games</code>, every USB and extended-storage <code>homebrew</code> subdir. Add manual paths for non-standard layouts.</li>
+  <li><strong>Install / Pick release</strong> — fetch a tagged SMP build from <code>drakmor/ShadowMountPlus</code> on GitHub (DNS needed) or use a cached offline-pack copy.</li>
+  <li><strong>Restart SMP</strong> — kill + respawn the daemon after changing scan paths.</li>
+  <li><strong>Quiet mode, debug, kstuff auto-toggle inside SMP, crash detection, pause delays</strong> — knobs forwarded straight into SMP's <code>config.ini</code>.</li>
+</ul>
+
+<h2 id="cheats">🎮 Cheat engine + CheatRunner</h2>
+<p>Two separate things, sharing a tab name:</p>
+<ul>
+  <li><strong>🎮 Cheats top-nav link</strong> opens <strong>CheatRunner</strong> in a new tab at <code>http://&lt;ps5&gt;:9999/</code> — a standalone web trainer with its own dashboard. Drop trainers at <code>/data/cheatrunner/cheats/{json,shn,mc4}/</code> and CheatRunner picks them up.</li>
+  <li><strong>Cheat engine</strong> (Settings) is the Elf Arsenal-side cheat manager. <strong>Default OFF</strong>; flip on to apply per-title <code>.json</code>/<code>.shn</code>/<code>.mc4</code> files at <code>/data/cheatrunner/cheats/&lt;TITLE_ID&gt;.&lt;ext&gt;</code> to the running game. Both UIs read from the same path, so files dropped via CheatRunner show up in our engine and vice-versa. Locked off when no game is foreground so cheats can't accidentally arm.</li>
+</ul>
+
+<h2 id="auto-patches">🎮 Auto-apply patches</h2>
+<p>Watches for newly-launched games and looks for <code>/data/elf-arsenal/patches/&lt;TITLE_ID&gt;.{json,shn,mc4}</code>. If found, the patches fire automatically — typical use is a <strong>60 fps unlock XML</strong> dropped per title. Toggle off if you'd rather apply patches manually from the cheat engine.</p>
+
+<h2 id="y2jb">🚀 Y2JB autoloader sync</h2>
+<p>Mirrors the Year-2 JB autoload list (<code>autoload.txt</code>) to USB/ext storage on a schedule. <em>Needs DNS to refresh from the source.</em></p>
+
+<h2 id="payloads">🧩 Managed Payloads</h2>
+<p>Tracks third-party ELFs Elf Arsenal has installed for you (kstuff, SMP, etc.) so you can see what's on disk, version-bump, or reset to bundled. Most users won't touch this.</p>
+
+<h2 id="pkgzone">🛒 PKG Zone catalog</h2>
+<p>Browses <code>pkg-zone.com</code>'s indexed homebrew catalog. Tap install on any tile to fetch + register the .pkg. <em>Needs DNS.</em></p>
+
+<h2 id="backpork">🐷 BackPork</h2>
+<p>fakelib overrider — a watcher that patches PS5 system libraries on-the-fly to bypass certain DRM / signing checks. Off by default because SMP already does the equivalent work for sideloaded games; turning both on can conflict. Enable only if a homebrew app explicitly asks for it.</p>
+
+<h2 id="nanodns">🌐 nanoDNS</h2>
+<p>The bundled DNS forwarder (drakmor's <em>nanoDNS</em>) listening on <code>127.0.0.1:53</code>. Resolves community domains to pinned IPs in <code>/data/nanodns/nanodns.ini</code> and forwards everything else upstream. Default ON. Required for Elf Arsenal to fetch GitHub releases, Homebrew installer to work, and Garlic Worker to talk to its queue — see the <strong>DNS setup</strong> banner at the top.</p>
+
+<h2 id="tile">🏠 Elf Arsenal UI pkg auto-update</h2>
+<p>Auto-replaces the home-screen tile's bundled launcher.html with the current build's version every boot. Off = keep whatever was last installed.</p>
+
+<h2 id="dumper">💾 App Dumper</h2>
+<p>EchoStretch's PS5 app dumper, one-shot. Press Run; the dumper writes plaintext copies of every installed app to a connected USB. Status comes through system notifications. Don't multi-tap — it serialises but heavy.</p>
+
+<h2 id="homebrew">📦 Homebrew installer</h2>
+<p>One-tap install of community PKGs sourced from the home-screen tile registry. <em>Needs DNS.</em></p>
+
+<h2 id="pkg-install">📦 PKG Installer</h2>
+<ul>
+  <li><strong>Install any .pkg file</strong> — upload via the picker; goes through DPI's install daemon (auto-spawned when missing).</li>
+  <li><strong>Install PKG by URL (RemotePKG)</strong> — paste an http(s)://… URL, DPI streams + installs.</li>
+</ul>
+
+<h2 id="ftp">📡 FTP server</h2>
+<p>Anonymous-by-default FTP listener (default <code>:2121</code>). Knobs:</p>
+<ul>
+  <li><strong>Port</strong> — non-standard so it doesn't clash with anything. 1–65535.</li>
+  <li><strong>User / Pass</strong> — leave <code>anonymous</code> for open access; anything else triggers the auth gate.</li>
+  <li><strong>Type</strong> — auto / binary / ascii. Force binary if your client picks ASCII for an executable.</li>
+  <li><strong>Daemon</strong> — <code>ftpsrv</code> (default) or <code>zftpd</code> (alt by seregonwar). Restart applies the switch.</li>
+</ul>
+
+<h2 id="linux">🐧 PS5 Linux loader</h2>
+<p>Boots the <code>ps5-linux-loader</code> kernel on supported firmwares (1.00 – 6.02 only — separate from Elf Arsenal's FW gate). On higher FW the section shows a banner explaining that the rest of Elf Arsenal still works. Bundled copy installs on first boot; picker fetches newer releases from GitHub (<em>needs DNS</em>).</p>
+
+<h2 id="bgsvc">🧩 Background services</h2>
+<ul>
+  <li><strong>klogsrv</strong> — locked ON. Forwards <code>/dev/klog</code> to TCP <code>:3232</code> for the in-page Klog viewer and remote <code>nc &lt;ip&gt; 3232</code> tails.</li>
+  <li><strong>Trophy unlocker (legacy launcher-patch)</strong> — SCC-patch trophy daemon. Default ON; toggles per session.</li>
+  <li><strong>Trophy unlocker (UDS)</strong> — any-FW UDS-event trophy daemon. Default ON. Fires automatically on every detected PPSA/PPSB/CUSA game with the universal default 0..63 trophy ids unless you drop a per-title list at <code>/data/elf-arsenal/trophy-unlocks/&lt;TITLE_ID&gt;.txt</code>.</li>
+  <li><strong>nanoDNS</strong> — see above.</li>
+  <li><strong>Lapy JB daemon</strong> — standalone PID-escalation daemon for apps that want etaHEN-style <code>HijackerCommand</code> IPC. Default OFF; most users don't need it.</li>
+  <li><strong>CheatRunner web trainer</strong> — standalone cheat trainer on <code>:9999</code>. Default ON.</li>
+  <li><strong>Patches auto-apply</strong> — see Auto-apply patches above.</li>
+</ul>
+
+<h2 id="fan">🌡 Fan control</h2>
+<p>Pin a fan-curve threshold (°C) that Elf Arsenal re-asserts every 15 s so Sony's firmware fan-reset on app/game launch can't undo it. Threshold range 30–90 °C; <code>0</code> means "don't touch the curve."</p>
+
+<h2 id="avatar">🖼 Avatar Maker</h2>
+<p>Upload a PNG, write it to the foreground user's avatar slot. Backs up the original first.</p>
+
+<h2 id="np">🪪 NP fake sign-in / 🚪 sign-out</h2>
+<p>Swaps the offline user's account state to look like a signed-in PSN profile (sign-in) or back to unsigned (sign-out). Needed for some titles that pre-flight check for a PSN session before launching. Sign-out restores from the backup the sign-in created.</p>
+
+<h2 id="backup">🛡 Backups &amp; Restore</h2>
+<p>Snapshot + restore for the PS5's userdata that the jailbreak touches: full <code>app.db</code>/<code>appinfo.db</code>, trophies, save metadata, NP account/profile state. First boot makes an automatic snapshot tagged <code>baseline</code>. Each subsystem (trophies, NP, etc.) writes its own tagged snapshot before patching anything destructive. Restore swaps the live files back atomically; the orchestrator pauses the websrv during the swap and auto-respawns it.</p>
+<div class="warn">Always make a fresh snapshot before flashing kstuff or installing a new SMP release.</div>
+
+<h2 id="sdk-rewriter">🛠 Bulk SDK rewriter</h2>
+<p>Scans every game folder under the SMP scan paths plus <code>/mnt/usb*</code> / <code>/mnt/ext*</code> for <code>sce_sys/param.json</code> (PPSA) or <code>sce_sys/param.sfo</code> (CUSA) and lists titles + current SDK version. Type a friendly firmware number (<code>9</code>, <code>9.00</code>, <code>10.01</code>) and Apply — the helper makes a <code>.bak</code> of each executable, patches the <code>sdkVersion</code> + <code>requiredSystemSoftwareVersion</code> in <code>param.json</code>, and scans every <code>eboot.bin</code> / <code>*.sprx</code> / <code>*.prx</code> for the embedded SDK field and rewrites it. Useful when you need to lower a title's required FW to launch on a lower-firmware console.</p>
+
+<h2 id="np-restore">🔁 NP account restore</h2>
+<p>Restores the previously-captured NP account state from a snapshot. Use it after experimenting with sign-in to undo any damage.</p>
+
+<h2 id="offline-act">🪪 Offline account activation</h2>
+<p>Writes the offline activation tokens so games that gate on "this PS5 is activated for this user" pass without an actual PSN handshake.</p>
+
+<h2 id="garlic">🧄 Garlic Worker &amp; SaveMgr</h2>
+<p><strong>Garlic SaveMgr</strong> is an interactive save manager UI on <code>:8082</code>. Open from the SaveMgr top-nav link; the dashboard lets you import / decrypt / re-sign PS4 and PS5 saves locally.</p>
+<p><strong>Garlic Worker</strong> is community infrastructure for <a href="https://garlicsaves.com" target="_blank" rel="noopener">garlicsaves.com</a> — it processes save-encrypt / save-decrypt jobs from a shared queue while your console is idle, with near-zero impact on active gameplay. <strong>Default ON</strong>; turning it on means your PS5 helps the wider community decrypt other users' saves and vice-versa. Turning it off doesn't break anything for you, but the community queue gets less throughput. <em>Needs DNS.</em></p>
+<ul>
+  <li><strong>Worker on/off</strong> — pause your contribution.</li>
+  <li><strong>Poll interval</strong> — how often to check the queue (default 30 s; floors at 5).</li>
+  <li><strong>SaveMgr port</strong> — fixed at <code>8082</code>.</li>
+</ul>
+
+<h2 id="offline-pack">🔌 Offline pack</h2>
+<p>For users without DNS / internet, run <code>tools/build-offline-pack.sh</code> on a machine that has internet, then FTP the resulting <code>elf-arsenal-offline-pack.zip</code> to <code>/data/elf-arsenal-offline-pack.zip</code> and tap <strong>Settings → 🔌 Offline pack → Extract now</strong>. Zip contents extract directly into <code>/data/</code> — every file lands where its picker expects it. Flip <strong>Offline mode</strong> ON to make pickers serve from the local pack instead of GitHub.</p>
+<p><strong>What the pack contains:</strong></p>
+<ul>
+  <li><strong>kstuff</strong> — three versions: EchoStretch latest, drakmor latest, kstuff-lowfw v1.0.3 (vendored).</li>
+  <li><strong>ShadowMountPlus</strong> latest tagged release.</li>
+  <li><strong>PS5 Linux loader</strong> latest tagged release.</li>
+  <li><strong>Y2JB autoloader payloads</strong> — <code>elf-arsenal.elf</code> and <code>sonic-loader-no-etahen.elf</code> from the soniciso/elf-arsenal release, ready for the autoloader to copy to USB.</li>
+  <li><strong>Elf Arsenal home-screen tile pkg</strong> (<code>elf-arsenal-tile.pkg</code>).</li>
+  <li><strong>Community homebrew app zips</strong> — defaults to <code>OffAct.zip</code> + <code>PKGInstall.zip</code>; edit <code>tools/build-offline-pack.sh</code>'s <code>HB_LIST</code> to add more (the full set is in <code>src/homebrew.c</code>). Skipped by default because some zips are huge (EDuke32 alone is ~1 GB).</li>
+  <li><strong>Three cheat-repo snapshots</strong> — etaHEN/PS5_Cheats, GoldHEN/GoldHEN_Cheat_Repository, TeeKay87/HEN-Cheats-Collection (full repo zips).</li>
+  <li><strong>manifest.json</strong> at <code>elf-arsenal/offline-pack/manifest.json</code> describing every version included.</li>
+</ul>
+<p><strong>Not in the pack:</strong> PKG Zone catalog (it's a live scrape of pkg-zone.com — would have to ship a static HTML mirror). HLTB times (live scrape of howlongtobeat.com). Both require DNS to work.</p>
+<div class="warn">Auto-extract on boot is currently disabled — extract on demand only, since a malformed pack can take down the loader otherwise.</div>
+
+<h2 id="credits">🙌 Credits &amp; greetz</h2>
+<p>Carrying these straight forward from the Sonic Loader days — none of this exists without their work, and Elf Arsenal is the same project under new branding, so the thanks list is the same list. If you're on it and want a name added / removed / changed, ping the Discord.</p>
+
+<p>Massive thanks to <strong>j0rdy, flat_z, TheFlow, c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen, zecoxao, StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor, hzhreal, Team-Alua, hammer-83, idlesauce, ntfargo, shahrilnet, null_ptr</strong> — and the entire PS5 jailbreak scene.</p>
+
+<p>Special shout to <strong>arksama</strong> for the Lapy JB Daemon — the reason Elf Arsenal is fully self-contained for app jailbreaking and no longer needs etaHEN — and for the heavy lift on the UDS trophy-unlock reverse that made <code>trophy-unlocker-uds.elf</code> possible.</p>
+
+<p>Supporters: <strong>mbcrump, Andrew Tate</strong> — thank you for the support.</p>
+
+<p>Project admin: <strong>maj0r</strong> — also the author of CheatRunner (<a href="https://x.com/callmemaj0r" target="_blank" rel="noopener">@callmemaj0r on X</a> · <a href="https://discord.gg/E4g6fEqp46" target="_blank" rel="noopener">CheatRunner Discord</a>). CheatRunner ships bundled in this repo as the web cheat trainer on <code>:9999</code>.</p>
+
+<p>Elf Arsenal is built on top of:</p>
+<ul>
+  <li><a href="https://github.com/ps5-payload-dev" target="_blank" rel="noopener">ps5-payload-dev</a> — <code>elfldr</code>, <code>websrv</code>, <code>ftpsrv</code>, <code>klogsrv</code> (the foundation everything else sits on)</li>
+  <li><a href="https://github.com/drakmor/shadowMountPlus" target="_blank" rel="noopener">drakmor/shadowMountPlus</a> — game auto-mounting from external storage</li>
+  <li><a href="https://github.com/EchoStretch/kstuff-lite" target="_blank" rel="noopener">EchoStretch/kstuff-lite</a> and <a href="https://github.com/drakmor/kstuff-lite" target="_blank" rel="noopener">drakmor/kstuff-lite</a> — userland kernel patches</li>
+  <li><a href="https://github.com/BestPig/BackPork" target="_blank" rel="noopener">BestPig/BackPork</a> — library sideloading</li>
+  <li><a href="https://git.etawen.dev/earthonion/garlic-worker" target="_blank" rel="noopener">earthonion/garlic-worker</a>, <a href="https://git.etawen.dev/earthonion/garlic-savemgr" target="_blank" rel="noopener">earthonion/garlic-savemgr</a> — save processing</li>
+  <li><a href="https://git.etawen.dev/earthonion/np-fake-signin" target="_blank" rel="noopener">earthonion/np-fake-signin</a>, <a href="https://git.etawen.dev/earthonion/np-account-restore" target="_blank" rel="noopener">earthonion/np-account-restore</a> — fake-PSN tooling</li>
+  <li><a href="https://github.com/EchoStretch/ps5-app-dumper" target="_blank" rel="noopener">EchoStretch/ps5-app-dumper</a> — app dumper</li>
+  <li><a href="https://github.com/ps5-payload-dev/offact" target="_blank" rel="noopener">ps5-payload-dev/offact</a> — offline account activation</li>
+  <li><a href="https://github.com/ps5-linux/ps5-linux-loader" target="_blank" rel="noopener">ps5-linux/ps5-linux-loader</a> — the Linux loader baked-in for first-boot install on FW ≤ 6.02</li>
+  <li><a href="https://github.com/GoldHEN/GoldHEN_Cheat_Repository" target="_blank" rel="noopener">GoldHEN</a>, <a href="https://github.com/etaHEN/PS5_Cheats" target="_blank" rel="noopener">etaHEN</a>, <a href="https://github.com/TeeKay87/HEN-Cheats-Collection" target="_blank" rel="noopener">TeeKay87/HEN-Cheats-Collection</a> — cheat repositories</li>
+  <li><a href="https://github.com/itsPLK/ps5-y2jb-autoloader" target="_blank" rel="noopener">itsPLK/ps5-y2jb-autoloader</a> — autoloader integration</li>
+  <li><a href="https://github.com/seregonwar/zftpd" target="_blank" rel="noopener">seregonwar/zftpd</a> — alternative FTP daemon</li>
+</ul>
+
+<p>And the Sonic Loader codebase itself — Elf Arsenal is the direct successor, retaining the same <code>/data/elf-arsenal/</code> data dir for seamless upgrades.</p>
+
+</main>
+
+</body>
+</html>

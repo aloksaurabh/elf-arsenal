@@ -1,0 +1,12 @@
+{
+  "name": "hltb-proxy",
+  "version": "1.0.0",
+  "description": "A serverless proxy for HowLongToBeat",
+  "type": "module",
+  "scripts": {
+    "start": "node api/search.js"
+  },
+  "dependencies": {
+    "howlongtobeat-ts": "^1.1.1"
+  }
+}

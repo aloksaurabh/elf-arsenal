@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — FPKG Guard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #050505; color: #e8eefb; font-family: -apple-system, "Segoe UI", sans-serif; }
+  .chrome {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, #0d1424, #050913);
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    height: 48px;
+  }
+  .back {
+    color: #e8eefb; text-decoration: none;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 13px;
+  }
+  .back:hover { background: rgba(255,255,255,0.12); }
+  .title { font-size: 14px; color: #9aa6c4; }
+  .title strong { color: #e8eefb; }
+  iframe {
+    border: 0; width: 100%; height: calc(100vh - 48px);
+    display: block; background: #06060e;
+  }
+  .fallback {
+    padding: 24px; text-align: center; color: #9aa6c4;
+  }
+  .fallback a { color: #4cc9ff; }
+  #disabled-msg {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    height: calc(100vh - 48px);
+    gap: 16px; padding: 32px; text-align: center;
+  }
+  #disabled-msg .icon { font-size: 48px; }
+  #disabled-msg h2 { font-size: 20px; color: #e8eefb; }
+  #disabled-msg p { color: #9aa6c4; max-width: 420px; line-height: 1.6; }
+  #disabled-msg a {
+    display: inline-block; margin-top: 8px;
+    background: #1a3a6e; color: #4cc9ff;
+    padding: 10px 22px; border-radius: 8px;
+    text-decoration: none; font-size: 14px;
+  }
+  #disabled-msg a:hover { background: #1e4a8a; }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<div class="chrome">
+  <a class="back" href="/">← Elf Arsenal</a>
+  <span class="title">🛡️ <strong>FPKG Guard</strong> · port 1666</span>
+</div>
+
+<div id="disabled-msg">
+  <div class="icon">🛡️</div>
+  <h2>FPKG Guard is disabled</h2>
+  <p>Enable FPKG Guard in Settings to protect your PS4 games from Sony's "Rebuild Database" wipe.</p>
+  <a href="/?settings=fpkgguard">Open Settings → FPKG Guard</a>
+</div>
+
+<iframe id="fg" title="FPKG Guard" style="display:none"></iframe>
+<noscript>
+  <div class="fallback">
+    Open <a id="direct" href="http://your-ps5-ip:1666/">FPKG Guard directly</a>.
+  </div>
+</noscript>
+
+<script>
+  (function(){
+    var host = location.hostname || 'localhost';
+    var disabledMsg = document.getElementById('disabled-msg');
+    var frame = document.getElementById('fg');
+    var direct = document.getElementById('direct');
+    var guardUrl = 'http://' + host + ':1666/';
+    if (direct) direct.href = guardUrl;
+
+    fetch('/api/state')
+      .then(function(r){ return r.json(); })
+      .then(function(s){
+        if(s.fpkgGuardRunning) {
+          frame.src = guardUrl;
+          frame.style.display = '';
+        } else {
+          disabledMsg.style.display = 'flex';
+        }
+      })
+      .catch(function(){
+        /* If we can't reach /api/state, just try to load the iframe */
+        frame.src = guardUrl;
+        frame.style.display = '';
+      });
+  })();
+</script>
+
+</body>
+</html>

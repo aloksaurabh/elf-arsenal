@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal · Cheats</title>
+<style>
+  :root {
+    --bg-0: #050913;
+    --bg-1: #0d1424;
+    --bg-2: #131b30;
+    --fg-0: #e8eefb;
+    --fg-1: #9aa6c4;
+    --accent: #4cc9ff;
+    --accent-glow: rgba(76, 201, 255, 0.4);
+    --ok: #6bff9c;
+    --warn: #ffb84a;
+    --danger: #ff5675;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-0);
+               font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+               font-size: 14px; line-height: 1.45; }
+  a { color: var(--accent); text-decoration: none; }
+
+  /* ── header ────────────────────────────────────────────────────── */
+  header {
+    background: linear-gradient(180deg, rgba(13,20,36,0.92), rgba(13,20,36,0.55));
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 14px 16px;
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(10px);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700;
+           font-size: 16px; letter-spacing: 0.4px; }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%;
+               background: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
+  nav.topnav {
+    display: flex; gap: 6px; margin-top: 10px; overflow-x: auto;
+    -webkit-overflow-scrolling: touch; white-space: nowrap;
+    padding-bottom: 2px;
+  }
+  nav.topnav a {
+    flex-shrink: 0;
+    padding: 7px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.04); color: var(--fg-1);
+    border: 1px solid rgba(255,255,255,0.08); font-size: 13px;
+  }
+  nav.topnav a.active {
+    background: rgba(76,201,255,0.16); color: var(--accent);
+    border-color: rgba(76,201,255,0.35);
+  }
+
+  /* ── layout ────────────────────────────────────────────────────── */
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+  .card {
+    background: linear-gradient(180deg, rgba(20,28,48,0.78), rgba(13,20,36,0.78));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 0 0 14px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 10px; font-weight: 600; font-size: 15px;
+  }
+  .card-sub {
+    color: var(--fg-1); font-size: 12px; margin: 0 0 12px;
+  }
+
+  /* ── status banner ─────────────────────────────────────────────── */
+  .status-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(76,201,255,0.10);
+    border: 1px solid rgba(76,201,255,0.25);
+    margin-bottom: 14px;
+  }
+  .status-banner .icon { font-size: 22px; }
+  .status-banner .text { flex: 1; }
+  .status-banner .game-name { font-weight: 600; }
+  .status-banner .game-tid {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px; opacity: 0.7;
+  }
+  .status-banner.idle { background: rgba(255,255,255,0.03);
+                        border-color: rgba(255,255,255,0.08); }
+
+  /* ── master toggle ─────────────────────────────────────────────── */
+  .master-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .master-row .label { flex: 1; }
+  .master-row .title { font-weight: 600; font-size: 15px; }
+  .master-row .desc { color: var(--fg-1); font-size: 12px; margin-top: 2px; }
+  .switch {
+    position: relative; display: inline-block;
+    width: 50px; height: 28px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: rgba(255,255,255,0.08); transition: 0.2s;
+    border-radius: 28px;
+  }
+  .slider:before {
+    content: ''; position: absolute; height: 22px; width: 22px;
+    left: 3px; top: 3px; background: var(--fg-1);
+    transition: 0.2s; border-radius: 50%;
+  }
+  input:checked + .slider { background: rgba(76,201,255,0.30); }
+  input:checked + .slider:before { background: var(--accent); transform: translateX(22px); }
+
+  /* ── per-cheat rows ────────────────────────────────────────────── */
+  .cheat-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 8px;
+  }
+  .cheat-row .info { flex: 1; min-width: 0; }
+  .cheat-row .name { font-weight: 500; word-break: break-word; }
+  .cheat-row .meta { color: var(--fg-1); font-size: 11px;
+                     font-family: ui-monospace, Menlo, Consolas, monospace;
+                     margin-top: 2px; }
+  .cheat-row .mod-count { color: var(--accent); font-size: 11px;
+                          font-family: ui-monospace, Menlo, Consolas, monospace;
+                          margin-top: 2px; }
+
+  /* ── buttons ───────────────────────────────────────────────────── */
+  .btn {
+    appearance: none; cursor: pointer;
+    background: rgba(76,201,255,0.16); color: var(--accent);
+    border: 1px solid rgba(76,201,255,0.35);
+    padding: 9px 14px; border-radius: 999px;
+    font: inherit; font-size: 14px; min-height: 38px;
+  }
+  .btn:hover { background: rgba(76,201,255,0.25); }
+  .btn.secondary { background: rgba(255,255,255,0.04); color: var(--fg-0);
+                   border-color: rgba(255,255,255,0.10); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  select, input[type="text"] {
+    width: 100%; max-width: 100%;
+    background: rgba(0,0,0,0.35); color: var(--fg-0);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font: inherit; font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  /* ── progress + status messages ────────────────────────────────── */
+  progress {
+    width: 100%; height: 8px; margin-top: 8px;
+    accent-color: var(--accent);
+  }
+  .status-line { color: var(--fg-1); font-size: 12px; margin-top: 6px; }
+  .status-line.ok { color: var(--ok); }
+  .status-line.warn { color: var(--warn); }
+  .status-line.err { color: var(--danger); }
+
+  /* ── instruction blocks ────────────────────────────────────────── */
+  code, pre {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px;
+    background: rgba(0,0,0,0.35); padding: 2px 6px; border-radius: 6px;
+    color: var(--fg-0);
+    word-break: break-all; white-space: pre-wrap;
+  }
+  pre { padding: 10px 12px; line-height: 1.5; overflow-x: auto; }
+  ol.howto { margin: 0; padding-left: 20px; color: var(--fg-1); font-size: 13px;
+             line-height: 1.6; }
+  ol.howto strong { color: var(--fg-0); }
+
+  /* ── empty states ──────────────────────────────────────────────── */
+  .empty {
+    text-align: center; padding: 28px 14px;
+    color: var(--fg-1); font-size: 13px;
+  }
+
+  /* ── mobile tightening ─────────────────────────────────────────── */
+  @media (max-width: 540px) {
+    body { font-size: 14px; }
+    main { padding: 12px; }
+    .card { padding: 12px; margin-bottom: 12px; }
+    .master-row { flex-direction: row; align-items: center; }
+    .master-row .title { font-size: 14px; }
+    .btn { font-size: 13px; }
+  }
+</style>
+<link rel="stylesheet" href="/verbadge.css">
+<script src="/verbadge.js" defer></script>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="/" title="Back to home">
+    <span class="brand-dot"></span> ⚡ Elf Arsenal · 🎮 Cheats
+  </a>
+  <nav class="topnav" aria-label="Pages">
+    <a href="/">🏠 Home</a>
+    <a href="/files">📁 Files</a>
+    <a href="/klog">Klog</a>
+    <a href="/stats">Stats</a>
+    <a href="/cheats" class="active">🎮 Cheats</a>
+    <a href="/?settings=open">⚙ Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Status banner: which game (if any) is running + how many cheats matched -->
+  <div class="status-banner" id="status-banner">
+    <div class="icon">🎮</div>
+    <div class="text">
+      <div class="game-name" id="status-name">Loading…</div>
+      <div class="game-tid" id="status-tid"></div>
+    </div>
+  </div>
+
+  <!-- Master toggle -->
+  <div class="card">
+    <div class="master-row">
+      <div class="label">
+        <div class="title">Cheat engine</div>
+        <div class="desc">Master switch. Off blocks every memory patch
+                          regardless of per-cheat toggles. Required to
+                          be on for any cheat to fire.</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="cheats-master" />
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Cheats for the currently-running game -->
+  <div class="card">
+    <div class="card-head">
+      <span>🎯</span>
+      <span id="active-title">Cheats for the running game</span>
+      <span style="margin-left:auto;">
+        <button class="btn secondary" id="refresh-active" title="Refresh">↻</button>
+      </span>
+    </div>
+    <input type="text" id="cheat-filter" placeholder="Filter cheats by name…"
+           autocomplete="off" />
+    <div id="active-rows">
+      <div class="empty" id="active-empty">No game running — launch a title to see cheats here.</div>
+    </div>
+  </div>
+
+  <!-- Bulk-download from a community repo -->
+  <div class="card">
+    <div class="card-head"><span>📥</span><span>Download cheats from a community repo</span></div>
+    <div class="card-sub">
+      Bulk-pull every cheat .json from one of the known repos.
+      Safe to run multiple times — existing files stay put.
+    </div>
+    <select id="repo-source">
+      <option value="ps5cheats">etaHEN PS5_Cheats</option>
+      <option value="goldhen">GoldHEN Cheat Repository</option>
+      <option value="hencollection">HEN-Cheats-Collection (TeeKay87)</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn" id="download-all">Download whole repo</button>
+      <button class="btn secondary" id="open-all-three" title="Pulls all 3 repos in sequence">Download ALL 3</button>
+    </div>
+    <progress id="dl-progress" value="0" max="100" style="display:none;"></progress>
+    <div class="status-line" id="dl-status"></div>
+  </div>
+
+  <!-- All cheats on disk (browse by title) -->
+  <div class="card">
+    <div class="card-head">
+      <span>📦</span>
+      <span>All cheat files on disk</span>
+      <span style="margin-left:auto;">
+        <button class="btn secondary" id="refresh-disk" title="Refresh">↻</button>
+      </span>
+    </div>
+    <div class="card-sub">
+      Every title that has at least one cheat file under
+      <code>/data/elf-arsenal/cheats/</code> (or its
+      <code>json</code>/<code>shn</code>/<code>mc4</code> subdirs).
+    </div>
+    <div id="disk-rows">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+  <!-- How to add your own -->
+  <div class="card">
+    <div class="card-head"><span>📤</span><span>Add your own cheats via FTP</span></div>
+    <ol class="howto">
+      <li>Connect an FTP client to your PS5:
+        <pre>Host: <span id="ps5-host">your-ps5-ip</span>
+Port: 2121   ·   User: anonymous   ·   Password: (blank)</pre>
+      </li>
+      <li>Go to <code>/data/elf-arsenal/cheats/</code>
+          (the folder is created automatically on boot).</li>
+      <li>Upload your cheat file. Name it
+          <code>&lt;TITLE_ID&gt;.json</code> — e.g.
+          <code>PPSA01411.json</code>. The file's <code>title_id</code>
+          field must also match.</li>
+      <li>Tap ↻ <strong>Refresh</strong> in the section above and the new
+          cheats appear when the title is foreground.</li>
+    </ol>
+  </div>
+
+</main>
+
+<script>
+function showToast(msg, kind) {
+  /* lightweight inline toast (the launcher.html showToast isn't loaded here) */
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed; bottom:18px; left:50%; ' +
+      'transform:translateX(-50%); padding:9px 16px; border-radius:999px; ' +
+      'background:rgba(0,0,0,0.85); color:#fff; font-size:13px; z-index:1000; ' +
+      'box-shadow:0 8px 32px rgba(0,0,0,0.45);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = kind === 'err' ? 'rgba(255,86,117,0.95)' :
+                       kind === 'ok'  ? 'rgba(76,201,255,0.95)' :
+                                        'rgba(0,0,0,0.85)';
+  t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+/* ──── Status banner: which game is running ──── */
+async function refreshStatus() {
+  try {
+    const r = await fetch('/api/state');
+    const j = await r.json();
+    const cb = document.getElementById('cheats-master');
+    if (cb) cb.checked = !!j.cheatsEnabled;
+    const banner = document.getElementById('status-banner');
+    const name   = document.getElementById('status-name');
+    const tid    = document.getElementById('status-tid');
+    if (j.gameRunning && j.cheatsTitleId) {
+      banner.classList.remove('idle');
+      name.textContent = j.cheatsTitleName || 'Running game';
+      tid.textContent  = j.cheatsTitleId;
+    } else {
+      banner.classList.add('idle');
+      name.textContent = 'No game running';
+      tid.textContent  = 'Cheats for a title appear here once you launch one';
+    }
+  } catch (e) { /* ignore */ }
+}
+
+/* ──── Master toggle ──── */
+document.getElementById('cheats-master').addEventListener('change', async (e) => {
+  const want = e.target.checked ? 1 : 0;
+  try {
+    const r = await fetch('/api/state?cheats=' + want);
+    const j = await r.json();
+    e.target.checked = !!j.cheatsEnabled;
+    showToast('Cheat engine ' + (j.cheatsEnabled ? 'on' : 'off'),
+              j.cheatsEnabled === !!want ? 'ok' : 'err');
+  } catch (err) {
+    showToast('Toggle failed: ' + err.message, 'err');
+  }
+});
+
+/* ──── Active-game cheats list ──── */
+async function refreshActive() {
+  const box = document.getElementById('active-rows');
+  const empty = document.getElementById('active-empty');
+  try {
+    const r = await fetch('/api/cheats');
+    const j = await r.json();
+    /* Accept several shape variants: array, {cheats: []}, {ok, cheats}. */
+    const cheats = Array.isArray(j) ? j :
+                   (j.cheats || j.entries || j.list || []);
+    if (!Array.isArray(cheats) || !cheats.length) {
+      box.innerHTML = '<div class="empty">' +
+        (j.error || 'No cheats matched the running game (or no game is running).') +
+        '</div>';
+      return;
+    }
+    const filterEl = document.getElementById('cheat-filter');
+    const filter = (filterEl ? filterEl.value : '').toLowerCase().trim();
+    const list = filter
+      ? cheats.filter(c => (c.name || '').toLowerCase().includes(filter))
+      : cheats;
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">No cheats match "'+filter+'"</div>';
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    list.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'cheat-row';
+      const info = document.createElement('div');
+      info.className = 'info';
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = c.name || ('Cheat #' + (i + 1));
+      info.appendChild(name);
+      if (Array.isArray(c.mods)) {
+        const mc = document.createElement('div');
+        mc.className = 'mod-count';
+        mc.textContent = c.mods.length + ' mod' + (c.mods.length === 1 ? '' : 's');
+        info.appendChild(mc);
+      }
+      row.appendChild(info);
+      const sw = document.createElement('label');
+      sw.className = 'switch';
+      sw.innerHTML = '<input type="checkbox"' +
+        (c.enabled ? ' checked' : '') + ' /><span class="slider"></span>';
+      const cb = sw.querySelector('input');
+      cb.addEventListener('change', async () => {
+        const idx = (typeof c.index === 'number') ? c.index : i;
+        try {
+          const tr = await fetch('/api/cheats/toggle?index=' + idx +
+                                 '&enabled=' + (cb.checked ? 1 : 0));
+          const tj = await tr.json();
+          if (tj.ok === false) {
+            cb.checked = !cb.checked;
+            showToast(tj.error || 'toggle failed', 'err');
+          }
+        } catch (e) {
+          cb.checked = !cb.checked;
+          showToast('toggle: ' + e.message, 'err');
+        }
+      });
+      row.appendChild(sw);
+      frag.appendChild(row);
+    });
+    box.innerHTML = '';
+    box.appendChild(frag);
+  } catch (e) {
+    box.innerHTML = '<div class="empty err">Error: ' + e.message + '</div>';
+  }
+}
+document.getElementById('refresh-active').addEventListener('click', refreshActive);
+document.getElementById('cheat-filter').addEventListener('input', () => {
+  /* debounce: only call refreshActive on enter or after pause */
+  clearTimeout(window._filterT);
+  window._filterT = setTimeout(refreshActive, 200);
+});
+
+/* ──── Download-all (single repo) ──── */
+async function pollDownload() {
+  const bar = document.getElementById('dl-progress');
+  const status = document.getElementById('dl-status');
+  bar.style.display = 'block';
+  while (true) {
+    await new Promise(r => setTimeout(r, 1500));
+    try {
+      const r = await fetch('/api/cheats/download-all/status');
+      const j = await r.json();
+      if (j.total && j.total > 0) {
+        bar.value = j.fetched || 0;
+        bar.max = j.total;
+        status.textContent = 'Downloaded ' + (j.fetched || 0) + ' / ' + j.total;
+      } else if (j.message) {
+        status.textContent = j.message;
+      }
+      if (j.done || j.finished) {
+        bar.style.display = 'none';
+        status.className = 'status-line ok';
+        status.textContent = '✅ Finished — ' + (j.fetched || 0) +
+                             ' file(s) on disk' +
+                             (j.missing ? (' · ' + j.missing + ' already had') : '');
+        break;
+      }
+      if (j.error) {
+        bar.style.display = 'none';
+        status.className = 'status-line err';
+        status.textContent = 'Failed: ' + j.error;
+        break;
+      }
+    } catch (e) { /* keep polling */ }
+  }
+}
+document.getElementById('download-all').addEventListener('click', async () => {
+  const sel = document.getElementById('repo-source');
+  const source = sel.value;
+  if (!confirm('Download the entire ' + sel.options[sel.selectedIndex].text +
+               ' repo? This can be a few thousand files.')) return;
+  const status = document.getElementById('dl-status');
+  status.className = 'status-line';
+  status.textContent = 'Starting…';
+  try {
+    const r = await fetch('/api/cheats/download-all?source=' +
+                          encodeURIComponent(source));
+    const j = await r.json();
+    if (j.ok === false) {
+      status.className = 'status-line err';
+      status.textContent = 'Failed: ' + (j.error || 'unknown');
+      return;
+    }
+    pollDownload();
+  } catch (e) {
+    status.className = 'status-line err';
+    status.textContent = 'Error: ' + e.message;
+  }
+});
+document.getElementById('open-all-three').addEventListener('click', async () => {
+  if (!confirm('Pull all 3 repos in sequence (etaHEN + GoldHEN + HEN-Cheats-Collection)?')) return;
+  const sources = ['ps5cheats','goldhen','hencollection'];
+  const status = document.getElementById('dl-status');
+  for (const src of sources) {
+    status.textContent = 'Fetching ' + src + '…';
+    try {
+      await fetch('/api/cheats/download-all?source=' + src);
+      await pollDownload();
+    } catch (_) { /* continue to next */ }
+  }
+  status.className = 'status-line ok';
+  status.textContent = '✅ All three repos pulled.';
+});
+
+/* ──── On-disk cheats list (browse by title) ──── */
+async function refreshDisk() {
+  const box = document.getElementById('disk-rows');
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    /* Reuse /api/cheats with no-foreground-filter via ?list=all if the
+       backend supports it; otherwise fall back to /api/fs/list of
+       /data/elf-arsenal/cheats. */
+    let titles = [];
+    try {
+      const r = await fetch('/api/cheats?list=all');
+      const j = await r.json();
+      if (Array.isArray(j.titles))     titles = j.titles;
+      else if (Array.isArray(j.files)) titles = j.files;
+      else if (Array.isArray(j))       titles = j.map(x => x.title_id || x.titleId).filter(Boolean);
+    } catch (_) {}
+    if (!titles.length) {
+      /* Fall back to listing the cheats dir directly. */
+      const r = await fetch('/api/fs/list?path=/data/elf-arsenal/cheats');
+      const j = await r.json();
+      if (j.ok && Array.isArray(j.entries)) {
+        titles = j.entries
+          .filter(e => !e.dir && /\.(json|shn|mc4)$/i.test(e.name))
+          .map(e => e.name.replace(/\.(json|shn|mc4)$/i, ''));
+        titles = [...new Set(titles)];
+      }
+    }
+    if (!titles.length) {
+      box.innerHTML = '<div class="empty">No cheat files on disk yet — use the download buttons above.</div>';
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    titles.sort().forEach((tid) => {
+      const row = document.createElement('div');
+      row.className = 'cheat-row';
+      const info = document.createElement('div');
+      info.className = 'info';
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = tid;
+      info.appendChild(name);
+      row.appendChild(info);
+      const del = document.createElement('button');
+      del.className = 'btn secondary';
+      del.textContent = '🗑';
+      del.title = 'Delete this cheat file from disk';
+      del.addEventListener('click', async () => {
+        if (!confirm('Delete cheats for ' + tid + '?')) return;
+        try {
+          const r = await fetch('/api/cheats/delete?title_id=' + encodeURIComponent(tid));
+          const j = await r.json();
+          if (j.ok) {
+            row.remove();
+            showToast('Deleted ' + tid, 'ok');
+          } else {
+            showToast(j.error || 'delete failed', 'err');
+          }
+        } catch (e) { showToast('delete: ' + e.message, 'err'); }
+      });
+      row.appendChild(del);
+      frag.appendChild(row);
+    });
+    box.innerHTML = '';
+    box.appendChild(frag);
+  } catch (e) {
+    box.innerHTML = '<div class="empty err">Error: ' + e.message + '</div>';
+  }
+}
+document.getElementById('refresh-disk').addEventListener('click', refreshDisk);
+
+/* ──── Init ──── */
+(function init() {
+  /* Populate FTP-host placeholder from the page's own hostname. */
+  const h = document.getElementById('ps5-host');
+  if (h) h.textContent = location.hostname || 'your-ps5-ip';
+  refreshStatus();
+  refreshActive();
+  refreshDisk();
+  setInterval(refreshStatus, 5000);
+})();
+</script>
+</body>
+</html>

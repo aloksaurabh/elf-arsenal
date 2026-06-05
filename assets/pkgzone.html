@@ -1,0 +1,527 @@
+<!-- Copyright (C) 2026 soniciso
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING. If not, see
+<http://www.gnu.org/licenses/>. -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Elf Arsenal — PKG Zone</title>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg-0: #050913; --bg-1: #0d1424; --bg-2: #131b30;
+    --fg-0: #e8eefb; --fg-1: #9aa6c4;
+    --accent: #4cc9ff; --danger: #ff5675; --ok: #6bff9c;
+    --bg-glow-a: #1a2440; --bg-glow-b: #163046;
+  }
+  html[data-theme="oled"] {
+    --bg-0: #000; --bg-1: #050505; --bg-2: #0a0a0a;
+    --fg-0: #f5f5f5; --fg-1: #888;
+    --accent: #00d4ff; --danger: #ff3b58; --ok: #4cff8a;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  html[data-theme="light"] {
+    --bg-0: #f3f6fc; --bg-1: #fff; --bg-2: #e9eef8;
+    --fg-0: #101724; --fg-1: #50607c;
+    --accent: #0066d6; --danger: #d12d49; --ok: #1d9d4f;
+    --bg-glow-a: #d6e3f6; --bg-glow-b: #e6efff;
+  }
+  html[data-theme="contrast"] {
+    --bg-0: #000; --bg-1: #000; --bg-2: #111;
+    --fg-0: #fff; --fg-1: #fff;
+    --accent: #ff0; --danger: #ff0040; --ok: #00ff5e;
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px 20px 60px;
+    background: radial-gradient(900px 600px at 75% -10%, var(--bg-glow-a) 0%, transparent 60%),
+                radial-gradient(800px 500px at -10% 110%, var(--bg-glow-b) 0%, transparent 55%),
+                var(--bg-0);
+    color: var(--fg-0);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  h1 { font-size: 20px; margin: 0; }
+  .sub { color: var(--fg-1); font-size: 12px; margin-left: 4px; }
+  .spacer { flex: 1; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, .btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: var(--fg-0);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover, .btn:hover {
+    background: rgba(76, 201, 255, 0.18);
+    border-color: rgba(76, 201, 255, 0.45);
+  }
+  button.primary {
+    background: var(--accent); color: #001827;
+    border-color: var(--accent); font-weight: 600;
+  }
+  button.primary:hover { filter: brightness(1.1); }
+  button.danger {
+    background: transparent; color: var(--danger);
+    border-color: rgba(255,86,117,0.4);
+  }
+  input[type="text"], input[type="search"] {
+    background: rgba(0,0,0,0.35);
+    color: var(--fg-0);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 220px;
+  }
+  input[type="text"]:focus, input[type="search"]:focus {
+    outline: none; border-color: var(--accent);
+  }
+
+  .disclaimer {
+    background: linear-gradient(135deg,
+        rgba(76, 201, 255, 0.10),
+        rgba(107, 255, 156, 0.06));
+    border: 1px solid rgba(76, 201, 255, 0.28);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--fg-0);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .disclaimer .icon { font-size: 22px; flex: 0 0 auto; }
+  .disclaimer strong { color: var(--accent); }
+  .disclaimer .ko-fi {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #29abe0; color: #fff;
+    padding: 5px 12px; border-radius: 999px;
+    font-weight: 600; text-decoration: none; font-size: 12px;
+    margin-top: 4px;
+  }
+  .disclaimer .ko-fi:hover { filter: brightness(1.1); text-decoration: none; }
+
+  .toolbar {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  #status { color: var(--fg-1); font-size: 12px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--bg-1);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(76, 201, 255, 0.4);
+    box-shadow: 0 8px 24px -8px rgba(76, 201, 255, 0.35);
+  }
+  /* Cover wrapper just hosts the absolutely-positioned badge; the
+     <img> itself owns the sizing. This matches the home-page tile
+     icon pattern that's known to render correctly inside the PS5
+     in-app browser, where the older WebKit doesn't handle the
+     "aspect-ratio on wrapper + position:absolute child with inset:0"
+     combo we used previously — the images render fine on a PC
+     browser but collapse to 0x0 on PS5. */
+  .card .cover {
+    position: relative;
+    background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+  }
+  .card .cover img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+  }
+  .card .badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 8px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .card .badge.ps5 { border-color: rgba(76, 201, 255, 0.65); color: #cdefff; }
+  .card .badge.ps4 { border-color: rgba(255, 184, 74, 0.55); color: #ffd99a; }
+
+  .filter-group {
+    display: inline-flex; gap: 0;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px; overflow: hidden;
+  }
+  .filter-group button {
+    border: none; border-radius: 0;
+    padding: 8px 14px; font-size: 13px;
+    background: transparent; color: var(--fg-1);
+  }
+  .filter-group button + button {
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  .filter-group button.active {
+    background: rgba(76, 201, 255, 0.18);
+    color: var(--accent); font-weight: 600;
+  }
+  .card .body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; }
+  .card .title {
+    font-weight: 600; font-size: 13px;
+    color: var(--fg-0);
+    margin-bottom: 4px;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    min-height: 2.6em;
+  }
+  .card .meta {
+    color: var(--fg-1); font-size: 11px; margin-bottom: 8px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .card .meta .version {
+    background: rgba(76, 201, 255, 0.12);
+    color: var(--accent);
+    padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .card .actions { display: flex; gap: 6px; margin-top: auto; }
+  .card .actions button { flex: 1; padding: 6px 8px; font-size: 12px; }
+  .card .actions .info-btn {
+    flex: 0 0 auto;
+    background: transparent;
+    border-color: rgba(255,255,255,0.10);
+    padding: 6px 10px;
+  }
+
+  .empty, .loading, .error {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--fg-1);
+    font-size: 14px;
+  }
+  .error { color: var(--danger); }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-1);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 12px 18px;
+    color: var(--fg-0); font-size: 13px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 200; max-width: 480px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.ok    { border-color: rgba(107,255,156,0.4); }
+  .toast.err   { border-color: rgba(255,86,117,0.4); color: var(--danger); }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+
+<header>
+  <h1>🛒 PKG Zone</h1>
+  <span class="sub">Homebrew catalog mirrored from pkg-zone.com — PS5 + PS4 packages</span>
+  <span class="spacer"></span>
+  <a href="/?settings=open" class="btn" title="Open Elf Arsenal settings">⚙ Settings</a>
+  <a href="/" class="btn">← Back</a>
+</header>
+
+<!-- Donation disclaimer for LM (pkg-zone.com host). -->
+<div class="disclaimer">
+  <div class="icon">💙</div>
+  <div>
+    PKG Zone is powered by <strong>pkg-zone.com</strong>, hosted by
+    <strong>LightningMods (LM)</strong> at their own expense.
+    Elf Arsenal doesn't host any of these packages — every install
+    streams directly from LM's server. If you find this useful, please
+    consider chipping in to help cover server fees so the catalog
+    stays online for everyone.
+    <div>
+      <a class="ko-fi" href="https://ko-fi.com/lightningmods"
+         target="_blank" rel="noopener noreferrer">
+        ☕ Donate to LM on Ko-Fi
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input id="q" type="search" placeholder="Search title / author / id…" autocomplete="off" />
+  <div class="filter-group" role="tablist" aria-label="Console filter">
+    <button data-filter="ps5" class="active" type="button" title="PS5-native packages only">PS5</button>
+    <button data-filter="ps4" type="button" title="PS4 packages (install as fpkg on JB PS5)">PS4</button>
+    <button data-filter="all" type="button" title="Everything in the catalog">All</button>
+  </div>
+  <button id="refresh" type="button" title="Re-fetch the catalog from pkg-zone.com">⟳ Refresh</button>
+  <span class="spacer"></span>
+  <span id="status">Loading…</span>
+</div>
+
+<div id="grid" class="grid">
+  <div class="loading"><span class="spinner"></span>Loading catalog…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  /* Match the theme the rest of the launcher uses. */
+  try {
+    var t = localStorage.getItem('sl-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (_) {}
+
+  var grid     = document.getElementById('grid');
+  var qInput   = document.getElementById('q');
+  var refBtn   = document.getElementById('refresh');
+  var statusEl = document.getElementById('status');
+  var toastEl  = document.getElementById('toast');
+  var items    = [];
+  /* "ps5" (default) | "ps4" | "all". Drives which subset of items is
+     visible AND which fork of the download URL we hand to the installer.
+     Stored so the filter survives page reloads. */
+  var consoleFilter = 'ps5';
+  try {
+    var saved = localStorage.getItem('pkgzone-filter');
+    if (saved === 'ps5' || saved === 'ps4' || saved === 'all') consoleFilter = saved;
+  } catch (_) {}
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function showToast(msg, kind, ms) {
+    toastEl.textContent = msg;
+    toastEl.className   = 'toast show ' + (kind || '');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () {
+      toastEl.className = 'toast ' + (kind || '');
+    }, ms || 4000);
+  }
+
+  function matchesFilter(it) {
+    if (consoleFilter === 'all') return true;
+    if (consoleFilter === 'ps5') return !!it.supportsPs5;
+    /* ps4 — show items that don't claim PS5 support. (Every pkg-zone
+       item has a ps4 download URL; "Supports PS5" is the opt-in flag.) */
+    return !it.supportsPs5;
+  }
+
+  function render() {
+    var q = qInput.value.trim().toLowerCase();
+    var filtered = items.filter(function (it) {
+      if (!matchesFilter(it)) return false;
+      if (!q) return true;
+      return (it.haystack || '').indexOf(q) !== -1;
+    });
+
+    var ps5n = items.filter(function (it) { return it.supportsPs5; }).length;
+    var ps4n = items.length - ps5n;
+    statusEl.textContent =
+      filtered.length + ' of ' + items.length + ' (' + ps5n + ' PS5 · ' + ps4n + ' PS4)' +
+      (q ? ' (filtered)' : '');
+
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="empty">' +
+        (items.length
+          ? 'No matches' + (q ? ' for "' + escapeHtml(q) + '"' : '') + ' in this filter.'
+          : 'Catalog is empty — try Refresh.') +
+        '</div>';
+      return;
+    }
+
+    var html = filtered.map(function (it) {
+      var versionTxt = (it.version || '').replace(/\s*\|\s*Supports PS5\s*/i, '').trim();
+      var badgeKind  = it.supportsPs5 ? 'ps5' : 'ps4';
+      var badgeText  = it.supportsPs5 ? 'PS5' : 'PS4';
+      return (
+        '<div class="card" data-id="' + escapeHtml(it.id) + '">' +
+          '<div class="cover">' +
+            '<img loading="lazy" src="' + escapeHtml(it.coverUrl) + '" alt="" ' +
+              'onerror="this.style.display=\'none\'" />' +
+            '<span class="badge ' + badgeKind + '">' + badgeText + '</span>' +
+          '</div>' +
+          '<div class="body">' +
+            '<div class="title" title="' + escapeHtml(it.title) + '">' +
+              escapeHtml(it.title) +
+            '</div>' +
+            '<div class="meta">' +
+              (versionTxt ? '<span class="version">' + escapeHtml(versionTxt) + '</span>' : '') +
+              (it.author ? '<span>by ' + escapeHtml(it.author) + '</span>' : '') +
+            '</div>' +
+            '<div class="actions">' +
+              '<button type="button" class="primary install-btn">Install</button>' +
+              '<a class="btn info-btn" href="' + escapeHtml(it.detailsUrl) +
+                '" target="_blank" rel="noopener noreferrer" title="Open pkg-zone.com details page">↗</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+    grid.innerHTML = html;
+
+    /* One-click install. We used to pop a confirm modal here, but the
+       PS5 in-app browser couldn't always scroll to it — users on PS4
+       and All tabs reported clicking Install and seeing "nothing
+       happen" because the modal opened off-screen. Going straight to
+       the install endpoint keeps behaviour identical across PS5 /
+       PS4 / All tabs and matches the way Activity and Homebrew
+       trigger background installs already. */
+    Array.prototype.forEach.call(grid.querySelectorAll('.install-btn'),
+      function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.closest('.card').getAttribute('data-id');
+          var it = items.find(function (x) { return x.id === id; });
+          if (it) installNow(it, btn);
+        });
+      });
+  }
+
+  /* Pick PS5 fork when the card supports it, else PS4. */
+  function downloadUrlFor(it) {
+    return it.supportsPs5 ? it.downloadPs5Url : it.downloadPs4Url;
+  }
+
+  function installNow(it, btn) {
+    var url = downloadUrlFor(it);
+    if (!url) {
+      showToast('No download URL for ' + (it.title || it.id), 'err');
+      return;
+    }
+    var label = (it.title || it.id) +
+                (it.supportsPs5 ? ' (PS5)' : ' (PS4 fpkg)');
+    showToast('Install for ' + label +
+              ' sent — check the PS5 home screen for progress.', 'ok', 6000);
+    if (btn) {
+      var orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      setTimeout(function () { btn.disabled = false; btn.textContent = orig; }, 2500);
+    }
+    /* Fire-and-forget. install-pkg-url often reports an error
+       response even when DPI accepted the URL and the install
+       proceeds on PS5, so we don't bubble up the reply — confusing
+       users with a false-failure toast is worse than no toast. */
+    try {
+      var qs = '?url=' + encodeURIComponent(url) +
+               '&name=' + encodeURIComponent(it.title || it.id);
+      fetch('/api/homebrew/install-pkg-url' + qs).catch(function () {});
+    } catch (_) {}
+  }
+
+  async function load(forceRefresh) {
+    grid.innerHTML = '<div class="loading"><span class="spinner"></span>' +
+                     (forceRefresh ? 'Refreshing from pkg-zone.com…' : 'Loading catalog…') +
+                     '</div>';
+    statusEl.textContent = '…';
+    try {
+      var r = await fetch(forceRefresh ? '/api/pkgzone/refresh'
+                                       : '/api/pkgzone/list');
+      var j = await r.json();
+      if (!j.ok) {
+        grid.innerHTML = '<div class="error">' + escapeHtml(j.error || 'Unknown error') + '</div>';
+        statusEl.textContent = 'error';
+        return;
+      }
+      items = Array.isArray(j.items) ? j.items : [];
+      render();
+      if (j.fetchedAt) {
+        var when = new Date(j.fetchedAt * 1000);
+        statusEl.title = 'Cached snapshot fetched ' + when.toLocaleString();
+      }
+    } catch (e) {
+      grid.innerHTML = '<div class="error">Failed to load: ' + escapeHtml(e.message) + '</div>';
+      statusEl.textContent = 'error';
+    }
+  }
+
+  qInput.addEventListener('input', render);
+  refBtn.addEventListener('click', function () { load(true); });
+
+  /* Wire up the PS5 / PS4 / All toggle. */
+  Array.prototype.forEach.call(
+    document.querySelectorAll('.filter-group button'),
+    function (btn) {
+      if (btn.getAttribute('data-filter') === consoleFilter) btn.classList.add('active');
+      else                                                   btn.classList.remove('active');
+      btn.addEventListener('click', function () {
+        consoleFilter = btn.getAttribute('data-filter');
+        try { localStorage.setItem('pkgzone-filter', consoleFilter); } catch (_) {}
+        Array.prototype.forEach.call(
+          document.querySelectorAll('.filter-group button'),
+          function (b) { b.classList.toggle('active', b === btn); });
+        render();
+      });
+    });
+
+  load(false);
+})();
+</script>
+<script>
+/* PS5 in-app WebKit ignores Cache-Control: no-store for anchor
+   navigation — bust caching at the URL level instead. */
+document.querySelectorAll('header a[href^="/"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    if (a.target === '_blank') return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return;
+    e.preventDefault();
+    var sep = href.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = href + sep + '_=' + Date.now();
+  });
+});
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+</script>
+
+</body>
+</html>

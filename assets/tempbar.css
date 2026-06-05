@@ -1,0 +1,154 @@
+/* Elf Arsenal — in-flow PS5 temperature gauge.
+
+   Lives only on the homepage (launcher.html) — added between the
+   "Installed titles" hero and the spotlight panel. Renders a horizontal
+   3-column glass card (label + big °C readout + sparkline graph + min/
+   avg/max pips) that scrolls with the page so it never overlays the
+   header, settings panel, spotlight, or tile grid. */
+
+#sl-tempgauge {
+  margin: 14px 0 0;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(20,24,40,.78), rgba(10,14,24,.86));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 12px 36px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.04),
+    0 0 0 1px rgba(108,140,255,.08);
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr minmax(180px, 220px);
+  gap: 22px;
+  align-items: center;
+  position: relative;
+  transition: box-shadow .35s ease;
+}
+
+#sl-tempgauge.sl-tempgauge--hidden {
+  display: none;
+}
+
+#sl-tempgauge.is-warm {
+  box-shadow:
+    0 12px 36px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.04),
+    0 0 24px rgba(243,146,90,.20),
+    0 0 0 1px rgba(243,146,90,.30);
+}
+#sl-tempgauge.is-hot {
+  box-shadow:
+    0 12px 36px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.04),
+    0 0 32px rgba(238,90,90,.30),
+    0 0 0 1px rgba(238,90,90,.40);
+}
+
+#sl-tempgauge .sl-tempgauge__left {
+  display: flex; flex-direction: column; gap: 6px;
+}
+#sl-tempgauge .sl-tempgauge__label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 600 11px ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+}
+#sl-tempgauge .sl-tempgauge__pulse {
+  width: 7px; height: 7px; border-radius: 999px;
+  background: #50d890;
+  box-shadow: 0 0 8px #50d890;
+  animation: sl-tempgauge-pulse 2.4s ease-in-out infinite;
+}
+#sl-tempgauge.is-warm .sl-tempgauge__pulse { background: #f3925a; box-shadow: 0 0 8px #f3925a; }
+#sl-tempgauge.is-hot  .sl-tempgauge__pulse { background: #ee5a5a; box-shadow: 0 0 10px #ee5a5a; animation-duration: 1s; }
+@keyframes sl-tempgauge-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .35; transform: scale(.8); }
+}
+
+#sl-tempgauge .sl-tempgauge__big {
+  display: flex; align-items: baseline; gap: 10px;
+  font: 700 38px/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+#sl-tempgauge .sl-tempgauge__big small {
+  font-size: 15px; opacity: .55; font-weight: 500;
+}
+#sl-tempgauge .sl-tempgauge__delta {
+  margin-left: auto;
+  font: 700 12px ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255,255,255,.55);
+}
+#sl-tempgauge .sl-tempgauge__delta.up   { color: #f3925a; }
+#sl-tempgauge .sl-tempgauge__delta.down { color: #50d890; }
+
+#sl-tempgauge .sl-tempgauge__sub {
+  font: 600 10px ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+}
+
+#sl-tempgauge .sl-tempgauge__chart {
+  position: relative;
+  height: 84px;
+}
+#sl-tempgauge .sl-tempgauge__chart svg {
+  display: block; width: 100%; height: 100%;
+  overflow: visible;
+}
+#sl-tempgauge .sl-tempgauge__threshold-pill {
+  position: absolute;
+  right: 4px;
+  background: rgba(255,255,255,.92);
+  color: #0a0d18;
+  font: 700 10px ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: top .35s ease;
+}
+
+#sl-tempgauge .sl-tempgauge__pips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+#sl-tempgauge .pip {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 10px;
+  padding: 8px 4px 6px;
+}
+#sl-tempgauge .pip__val {
+  font: 700 18px/1 ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255,255,255,.92);
+}
+#sl-tempgauge .pip__val small { font-size: 11px; opacity: .6; }
+#sl-tempgauge .pip__label {
+  margin-top: 4px;
+  font: 600 9px ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+}
+
+@media (max-width: 800px) {
+  #sl-tempgauge {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  #sl-tempgauge .sl-tempgauge__chart { height: 70px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #sl-tempgauge .sl-tempgauge__pulse { animation: none; }
+}

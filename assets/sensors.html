@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PS5 Sensor Stats — Elf Arsenal</title>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg-0: #050913; --bg-1: #0d1424; --bg-2: #131b30;
+    --fg-0: #e8eefb; --fg-1: #9aa6c4; --fg-2: #5a6a8a;
+    --accent: #4cc9ff; --danger: #ff5675; --ok: #6bff9c; --warn: #ffb84a;
+    --border: rgba(255,255,255,0.07);
+    --bg-glow-a: #1a2440; --bg-glow-b: #163046;
+  }
+  html[data-theme="oled"] {
+    --bg-0: #000; --bg-1: #050505; --bg-2: #0a0a0a;
+    --fg-0: #f5f5f5; --fg-1: #888; --fg-2: #444;
+    --accent: #00d4ff; --danger: #ff3b58; --ok: #4cff8a; --warn: #ffaa33;
+    --border: rgba(255,255,255,0.06);
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+  html[data-theme="light"] {
+    --bg-0: #f3f6fc; --bg-1: #fff; --bg-2: #e9eef8;
+    --fg-0: #101724; --fg-1: #50607c; --fg-2: #9aabcc;
+    --accent: #0066d6; --danger: #d12d49; --ok: #1d9d4f; --warn: #c47a00;
+    --border: rgba(0,0,0,0.08);
+    --bg-glow-a: #d6e3f6; --bg-glow-b: #e6efff;
+  }
+  html[data-theme="contrast"] {
+    --bg-0: #000; --bg-1: #000; --bg-2: #111;
+    --fg-0: #fff; --fg-1: #fff; --fg-2: #aaa;
+    --accent: #ff0; --danger: #ff0040; --ok: #00ff5e; --warn: #ff8c00;
+    --border: rgba(255,255,255,0.15);
+    --bg-glow-a: transparent; --bg-glow-b: transparent;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background:
+      radial-gradient(900px 600px at 75% -10%, var(--bg-glow-a) 0%, transparent 60%),
+      radial-gradient(800px 500px at -10% 110%, var(--bg-glow-b) 0%, transparent 55%),
+      var(--bg-0);
+    color: var(--fg-0);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 17px; flex: 1; }
+  .updated { font-size: 11px; color: var(--fg-2); }
+  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
+
+  /* identity bar at top */
+  .identity {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex; flex-wrap: wrap; gap: 20px;
+  }
+  .identity .field { font-size: 12px; }
+  .identity .field .lbl { color: var(--fg-2); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+  .identity .field .val { margin-top: 3px; font-weight: 600; }
+
+  /* section headers */
+  .section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--fg-2); margin: 18px 0 8px;
+  }
+
+  /* card grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .grid.wide { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+  .card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .card.hot::before   { background: rgba(255, 86, 117, .06); opacity: 1; }
+  .card.warm::before  { background: rgba(255, 184, 74, .05); opacity: 1; }
+
+  .card .lbl  { font-size: 10px; color: var(--fg-2); text-transform: uppercase; letter-spacing: .06em; }
+  .card .val  { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1; }
+  .card .sub  { font-size: 11px; color: var(--fg-1); margin-top: 5px; }
+
+  .hot  .val  { color: var(--danger); }
+  .warm .val  { color: var(--warn); }
+  .cool .val  { color: var(--ok); }
+  .dim  .val  { color: var(--fg-2); }
+
+  /* fan bar */
+  .fan-bar-wrap { margin-top: 8px; height: 6px; background: var(--bg-2); border-radius: 3px; overflow: hidden; }
+  .fan-bar { height: 100%; border-radius: 3px; transition: width .4s, background .4s; }
+
+  /* per-core grid */
+  .core-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+  }
+  .core-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .core-card .core-lbl { color: var(--fg-2); font-size: 10px; }
+  .core-card .core-val { font-weight: 700; font-size: 16px; margin-top: 2px; }
+  .core-bar-wrap { margin-top: 4px; height: 3px; background: var(--bg-0); border-radius: 2px; overflow: hidden; }
+  .core-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+
+  /* raw probe section */
+  .raw-section {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 12px;
+    font-family: monospace;
+  }
+  .raw-section pre { color: var(--fg-1); white-space: pre-wrap; word-break: break-all; }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 9999px;
+    font-size: 11px; font-weight: 600; vertical-align: middle;
+  }
+  .pill-ok   { background: rgba(107,255,156,.15); color: var(--ok); }
+  .pill-err  { background: rgba(255,86,117,.15);  color: var(--danger); }
+  .pill-dim  { background: var(--bg-2); color: var(--fg-2); }
+
+  .missing { color: var(--fg-2); font-style: italic; }
+
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .core-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+<script src="/i18n.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>🌡 PS5 Sensor Stats</h1>
+  <span class="updated" id="updated">—</span>
+  <a href="/?settings=open">⚙</a>
+  <a href="/launcher.html">← Back</a>
+</header>
+
+<div id="identity" class="identity">
+  <div class="field"><div class="lbl">Model</div><div class="val" id="id-model">—</div></div>
+  <div class="field"><div class="lbl">Firmware</div><div class="val" id="id-fw">—</div></div>
+  <div class="field"><div class="lbl">Form Factor</div><div class="val" id="id-shape">—</div></div>
+  <div class="field"><div class="lbl">Boot Count</div><div class="val" id="id-boots">—</div></div>
+  <div class="field"><div class="lbl">Operating Time</div><div class="val" id="id-optime">—</div></div>
+</div>
+
+<div class="section-title">Temperatures</div>
+<div class="grid" id="grid-temps"></div>
+
+<div class="section-title" id="storage-title" style="display:none">Storage</div>
+<div class="grid wide" id="grid-storage"></div>
+
+<div class="section-title" id="drives-title" style="display:none">USB Storage</div>
+<div class="grid" id="grid-drives"></div>
+
+<div class="section-title">Performance</div>
+<div class="grid" id="grid-perf"></div>
+
+<div class="section-title" id="core-section-title" style="display:none">CPU Core Usage</div>
+<div class="core-grid" id="grid-cores" style="display:none"></div>
+
+<div class="section-title" id="power-section-title">Power (probe)</div>
+<div id="grid-power"></div>
+
+<div class="section-title">Raw Probe Data</div>
+<div class="raw-section"><pre id="raw-out">loading…</pre></div>
+
+<script>
+(function () {
+  /* theme */
+  try {
+    document.documentElement.setAttribute('data-theme',
+      localStorage.getItem('sl-theme') || 'dark');
+  } catch(_) {}
+
+  const $ = id => document.getElementById(id);
+
+  /* ── helpers ── */
+  function fmtTemp(c) {
+    if (c == null) return null;
+    return c + '°C';
+  }
+  function tempClass(c) {
+    if (c == null) return 'dim';
+    if (c >= 80) return 'hot';
+    if (c >= 65) return 'warm';
+    return 'cool';
+  }
+  function fmtUptime(s) {
+    if (s == null) return '—';
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600),
+          m = Math.floor((s % 3600) / 60);
+    if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm ' + (s % 60) + 's';
+  }
+  function card(lbl, val, sub, klass) {
+    return '<div class="card ' + (klass || '') + '">' +
+           '<div class="lbl">' + lbl + '</div>' +
+           '<div class="val">' + (val != null ? val : '<span class="missing">N/A</span>') + '</div>' +
+           (sub ? '<div class="sub">' + sub + '</div>' : '') +
+           '</div>';
+  }
+
+  function fmtSize(bytes) {
+    if (bytes >= 1e12) return (bytes / 1e12).toFixed(1) + ' TB';
+    if (bytes >= 1e9)  return (bytes / 1e9).toFixed(1) + ' GB';
+    if (bytes >= 1e6)  return (bytes / 1e6).toFixed(0) + ' MB';
+    return bytes + ' B';
+  }
+
+  function storageBar(used, total) {
+    if (!total) return '';
+    const pct = Math.min(100, (used / total) * 100);
+    const col = pct >= 90 ? 'var(--danger)' : pct >= 75 ? 'var(--warn)' : 'var(--ok)';
+    return '<div style="margin-top:8px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--fg-1);margin-bottom:3px;">' +
+        '<span>' + fmtSize(used) + ' used</span>' +
+        '<span>' + fmtSize(total - used) + ' free</span>' +
+      '</div>' +
+      '<div class="fan-bar-wrap">' +
+        '<div class="fan-bar" style="width:' + pct.toFixed(1) + '%;background:' + col + '"></div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--fg-2);margin-top:3px;text-align:right;">' + pct.toFixed(0) + '% of ' + fmtSize(total) + '</div>' +
+    '</div>';
+  }
+
+  /* ── poll ── */
+  async function poll() {
+    let s;
+    try {
+      const r = await fetch('/api/sensors', { cache: 'no-store' });
+      if (!r.ok) return;
+      s = await r.json();
+    } catch (_) { return; }
+
+    $('updated').textContent = 'updated ' + new Date().toLocaleTimeString();
+
+    /* identity */
+    if (s.model)   $('id-model').textContent  = s.model;
+    if (s.firmwareVersion) {
+      const raw = parseInt(s.firmwareVersion, 16);
+      const maj = ((raw >> 24) & 0xFF).toString(16);
+      const min = ((raw >> 16) & 0xFF).toString(16).padStart(2, '0');
+      $('id-fw').textContent = maj + '.' + min + '  (' + s.firmwareVersion + ')';
+    }
+    if (s.productShape != null) {
+      $('id-shape').textContent =
+        s.productShape === 0 ? 'Digital' :
+        s.productShape === 1 ? 'Disc'    : 'Shape ' + s.productShape;
+    }
+    if (s.bootShutdownCount != null)
+      $('id-boots').textContent = s.bootShutdownCount.toLocaleString();
+    if (s.operatingTimeSec != null)
+      $('id-optime').textContent = fmtUptime(s.operatingTimeSec);
+
+    /* temperatures */
+    let tempsHtml = '';
+
+    if (s.cpuTempC != null)
+      tempsHtml += card('CPU', fmtTemp(s.cpuTempC), '', tempClass(s.cpuTempC));
+
+    if (s.socChannels) {
+      s.socChannels.forEach(ch => {
+        if (!ch.present) return;
+        const lbl = ch.label
+          ? 'SoC ch' + ch.channel + ' — ' + ch.label
+          : 'SoC ch' + ch.channel;
+        tempsHtml += card(lbl, fmtTemp(ch.tempC), '', tempClass(ch.tempC));
+      });
+    }
+    $('grid-temps').innerHTML = tempsHtml || '<span class="missing">No temperature sensors responded</span>';
+
+    /* performance */
+    let perfHtml = '';
+
+    if (s.cpuFreqMHz != null)
+      perfHtml += card('CPU Frequency', s.cpuFreqMHz.toFixed(0) + ' MHz', '', 'cool');
+
+    if (s.cpuMode != null) {
+      perfHtml += card('CPU Mode', s.cpuModeStr || s.cpuMode,
+                       'raw: ' + s.cpuMode, '');
+    }
+
+    if (s.fanDutyPct != null) {
+      const pct = s.fanDutyPct;
+      const cls = pct >= 80 ? 'hot' : pct >= 50 ? 'warm' : 'cool';
+      const barColor = pct >= 80 ? 'var(--danger)' : pct >= 50 ? 'var(--warn)' : 'var(--ok)';
+      perfHtml += '<div class="card ' + cls + '">' +
+                  '<div class="lbl">Fan Duty</div>' +
+                  '<div class="val">' + pct + '%</div>' +
+                  '<div class="sub">raw ' + (s.fanDutyRaw ?? '?') + ' / 255</div>' +
+                  '<div class="fan-bar-wrap"><div class="fan-bar" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+                  '</div>';
+    } else {
+      perfHtml += card('Fan Duty', null, '');
+    }
+
+    if (s.socPowerWGuess != null) {
+      perfHtml += card('SoC Power', s.socPowerWGuess.toFixed(1) + ' W',
+                       'raw[0]=' + (s.socPowerRaw ? s.socPowerRaw[0] : '?'), '');
+    }
+
+    $('grid-perf').innerHTML = perfHtml || '<span class="missing">No data</span>';
+
+    /* per-core CPU usage */
+    if (Array.isArray(s.cpuUsagePerCore) && s.cpuUsagePerCore.length > 0) {
+      $('core-section-title').style.display = '';
+      $('grid-cores').style.display = '';
+      $('grid-cores').innerHTML = s.cpuUsagePerCore.map((pct, i) => {
+        const cls = pct >= 90 ? 'var(--danger)' : pct >= 60 ? 'var(--warn)' : 'var(--accent)';
+        return '<div class="core-card">' +
+               '<div class="core-lbl">Core ' + i + '</div>' +
+               '<div class="core-val" style="color:' + cls + '">' + pct + '%</div>' +
+               '<div class="core-bar-wrap"><div class="core-bar" style="width:' + pct + '%;background:' + cls + '"></div></div>' +
+               '</div>';
+      }).join('');
+    } else if (s.cpuUsageRc != null) {
+      $('power-section-title').textContent = 'Power (probe)';
+    }
+
+    /* power raw */
+    if (s.socPowerRaw) {
+      $('grid-power').innerHTML =
+        '<div class="raw-section"><pre>' +
+        'socPowerRaw: [' + s.socPowerRaw.join(', ') + ']\n' +
+        '  raw[0] / 1000 = ' + (s.socPowerRaw[0] / 1000).toFixed(3) + ' (watts if mW)\n' +
+        '  raw[0] / 100  = ' + (s.socPowerRaw[0] / 100).toFixed(2)  + ' (watts if 10mW)\n' +
+        '  raw[0] / 10   = ' + (s.socPowerRaw[0] / 10).toFixed(1)   + ' (watts if 0.1W)' +
+        '</pre></div>';
+    } else {
+      $('grid-power').innerHTML =
+        '<div class="card dim"><div class="lbl">SoC Power</div>' +
+        '<div class="val"><span class="missing">N/A</span></div>' +
+        (s.socPowerRc != null ? '<div class="sub">rc=' + s.socPowerRc + '</div>' : '') +
+        '</div>';
+    }
+
+    /* raw dump */
+    const omit = ['ok','model','serial','firmwareVersion','productShape',
+                  'bootShutdownCount','operatingTimeSec','cpuTempC',
+                  'socChannels','cpuFreqMHz','cpuMode','cpuModeStr',
+                  'fanDutyPct','fanDutyRaw','cpuUsagePerCore','cpuCoreCount',
+                  'socPowerRaw','socPowerWGuess'];
+    const extra = {};
+    Object.keys(s).forEach(k => { if (!omit.includes(k)) extra[k] = s[k]; });
+    $('raw-out').textContent = JSON.stringify(s, null, 2);
+
+    /* USB drives */
+    try {
+      const dr = await fetch('/api/sensors/drives', { cache: 'no-store' });
+      if (dr.ok) {
+        const dj = await dr.json();
+        const drives = (dj.drives || []).filter(d => !d.accessDenied);
+        const title = $('drives-title');
+        const grid  = $('grid-drives');
+        if (drives.length === 0) {
+          title.style.display = 'none';
+          grid.innerHTML = '';
+        } else {
+          title.style.display = '';
+          grid.innerHTML = drives.map((d, i) => {
+            const tempC = typeof d.tempC === 'number' ? d.tempC : null;
+            const cls   = tempC !== null ? tempClass(tempC) : 'dim';
+            const pct   = tempC !== null ? Math.min(100, Math.max(0, (tempC / 80) * 100)) : 0;
+            const barColor = tempC !== null
+              ? (tempC >= 80 ? 'var(--danger)' : tempC >= 65 ? 'var(--warn)' : 'var(--ok)')
+              : 'rgba(255,255,255,0.1)';
+            return '<div class="card ' + cls + '">' +
+              '<div class="lbl">USB Drive ' + (i + 1) + '</div>' +
+              '<div class="val">' + (tempC !== null ? tempC + '°C' : '<span class="missing">No SMART</span>') + '</div>' +
+              (d.ident ? '<div class="sub">' + d.ident + '</div>' : '') +
+              (tempC !== null
+                ? '<div class="fan-bar-wrap" style="margin-top:8px;">' +
+                    '<div class="fan-bar" style="width:' + pct.toFixed(1) + '%;background:' + barColor + '"></div>' +
+                  '</div>'
+                : '') +
+              (d.fsTotalBytes ? storageBar(d.fsUsedBytes, d.fsTotalBytes) : '') +
+              '</div>';
+          }).join('');
+        }
+      }
+
+      /* Internal + M.2 storage usage */
+      const storTitle = document.getElementById('storage-title');
+      const storGrid  = document.getElementById('grid-storage');
+      if (storTitle && storGrid && dj.storage && dj.storage.length > 0) {
+        storTitle.style.display = '';
+        storGrid.innerHTML = dj.storage.map(s => {
+          return '<div class="card">' +
+            '<div class="lbl">' + s.label + '</div>' +
+            storageBar(s.fsUsedBytes, s.fsTotalBytes) +
+            '</div>';
+        }).join('');
+      }
+    } catch (_) {}
+  }
+
+  poll();
+  setInterval(poll, 2000);
+})();
+</script>
+<script>
+/* PS5 WebKit cache bust for anchor nav */
+document.querySelectorAll('header a[href^="/"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    if (a.target === '_blank') return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return;
+    e.preventDefault();
+    var sep = href.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = href + sep + '_=' + Date.now();
+  });
+});
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+</script>
+</body>
+</html>

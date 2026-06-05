@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elf Arsenal — Task Manager</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #07080f; color: #e8eefb; font-family: -apple-system, "Segoe UI", sans-serif; font-size: 14px; }
+
+.chrome {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #0d1424, #050913);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  height: 48px; flex-shrink: 0;
+}
+.back {
+  color: #e8eefb; text-decoration: none;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 6px 14px; border-radius: 8px; font-size: 13px;
+}
+.back:hover { background: rgba(255,255,255,0.12); }
+.title { font-size: 15px; font-weight: 600; color: #e8eefb; flex: 1; }
+.proc-count { font-size: 12px; color: #6a7a9a; }
+
+.toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: #0b0d18;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+#search {
+  flex: 1; max-width: 320px;
+  background: #141622; color: #e8eefb;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; padding: 7px 12px; font-size: 13px;
+}
+#search::placeholder { color: #4a5a7a; }
+#search:focus { outline: none; border-color: rgba(100,140,255,0.5); }
+.btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 13px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06); color: #e8eefb;
+  cursor: pointer; white-space: nowrap;
+}
+.btn:hover { background: rgba(255,255,255,0.12); }
+.btn.active { background: rgba(80,160,255,0.18); border-color: rgba(80,160,255,0.4); color: #88c0ff; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; display: inline-block; margin-right: 4px; }
+.status-dot.paused { background: #e67e22; }
+#refresh-label { font-size: 12px; color: #6a7a9a; }
+
+.table-wrap { overflow-y: auto; height: calc(100vh - 48px - 48px); }
+table { width: 100%; border-collapse: collapse; }
+thead { position: sticky; top: 0; z-index: 10; background: #0e1120; }
+th {
+  padding: 9px 14px; text-align: left; font-size: 12px; font-weight: 600;
+  color: #6a7a9a; text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer; user-select: none; white-space: nowrap;
+}
+th:hover { color: #aab4cc; }
+th.sorted-asc::after { content: ' ▲'; font-size: 10px; }
+th.sorted-desc::after { content: ' ▼'; font-size: 10px; }
+td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr:hover td { background: rgba(255,255,255,0.03); }
+
+.pid  { color: #6a7a9a; font-family: monospace; font-size: 13px; }
+.name { font-weight: 500; }
+.name.self { color: #f0c040; }
+.name.system { color: #5a8a5a; }
+.ppid { color: #4a5a7a; font-family: monospace; font-size: 12px; }
+
+.kill-btn {
+  padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(200,60,60,0.4);
+  background: rgba(200,60,60,0.12); color: #e87070;
+  cursor: pointer; transition: background .15s;
+}
+.kill-btn:hover { background: rgba(200,60,60,0.28); }
+.kill-btn:disabled { opacity: .35; cursor: default; }
+.kill-btn.protected { border-color: rgba(100,100,100,0.3); background: transparent; color: #4a5a7a; cursor: not-allowed; }
+
+.empty { padding: 40px; text-align: center; color: #4a5a7a; }
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #1a2035; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 10px 20px; font-size: 13px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999;
+}
+.toast.show { opacity: 1; }
+.toast.ok  { border-color: rgba(46,204,113,.4); color: #2ecc71; }
+.toast.err { border-color: rgba(231,76,60,.4);  color: #e74c3c; }
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <a class="back" href="/">&#8592; Elf Arsenal</a>
+  <span class="title">&#128196; Task Manager</span>
+  <span class="proc-count" id="proc-count"></span>
+</div>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="Filter by name or PID&#8230;" autocomplete="off" />
+  <span id="refresh-label"><span class="status-dot" id="dot"></span>Live</span>
+  <button class="btn" id="pause-btn" onclick="togglePause()">Pause</button>
+  <button class="btn" onclick="refresh()">&#8635; Refresh</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th data-col="pid"  onclick="sortBy('pid')">PID</th>
+        <th data-col="ppid" onclick="sortBy('ppid')">PPID</th>
+        <th data-col="name" onclick="sortBy('name')">Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="empty" id="empty" style="display:none">No processes found.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var selfPid = 0;
+  var procs = [];
+  var sortCol = 'pid';
+  var sortAsc = true;
+  var paused = false;
+  var timer = null;
+  var INTERVAL = 2000;
+
+  /* PIDs / names we protect from kill — system + Arsenal itself */
+  var PROTECTED_NAMES = ['idle', 'kernel', 'init', 'ps5-kernel'];
+  var PROTECTED_PIDS  = [0, 1, 2];
+
+  function isProtected(p) {
+    if(PROTECTED_PIDS.indexOf(p.pid) >= 0) return true;
+    var n = p.name.toLowerCase();
+    for(var i = 0; i < PROTECTED_NAMES.length; i++)
+      if(n === PROTECTED_NAMES[i]) return true;
+    return false;
+  }
+
+  function isSelf(p) { return selfPid && p.pid === selfPid; }
+
+  function toast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + (type||'');
+    clearTimeout(el._t);
+    el._t = setTimeout(function(){ el.className = 'toast'; }, 2500);
+  }
+
+  function sortBy(col) {
+    if(sortCol === col) sortAsc = !sortAsc;
+    else { sortCol = col; sortAsc = (col === 'name'); }
+    document.querySelectorAll('th[data-col]').forEach(function(th){
+      th.className = th.dataset.col === col ? (sortAsc ? 'sorted-asc' : 'sorted-desc') : '';
+    });
+    render();
+  }
+
+  function getFilter() {
+    return document.getElementById('search').value.trim().toLowerCase();
+  }
+
+  function render() {
+    var filter = getFilter();
+    var rows = procs.filter(function(p){
+      if(!filter) return true;
+      return p.name.toLowerCase().indexOf(filter) >= 0 ||
+             String(p.pid).indexOf(filter) >= 0;
+    });
+    rows.sort(function(a, b){
+      var av = a[sortCol], bv = b[sortCol];
+      if(typeof av === 'number') return sortAsc ? av - bv : bv - av;
+      return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+
+    document.getElementById('proc-count').textContent = rows.length + ' / ' + procs.length + ' processes';
+    var empty = document.getElementById('empty');
+    var tbody = document.getElementById('tbody');
+
+    if(!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+
+    var html = '';
+    rows.forEach(function(p){
+      var prot = isProtected(p);
+      var self = isSelf(p);
+      var nc = self ? 'name self' : (prot ? 'name system' : 'name');
+      var killHtml = (prot || self)
+        ? '<button class="kill-btn protected" disabled title="' + (self ? 'Arsenal itself' : 'Protected') + '">&#128274; Prot.</button>'
+        : '<button class="kill-btn" onclick="killPid(' + p.pid + ',this)" title="Force kill PID ' + p.pid + '">&#10005; Kill</button>';
+      html += '<tr>' +
+        '<td class="pid">' + p.pid + '</td>' +
+        '<td class="ppid">' + p.ppid + '</td>' +
+        '<td class="' + nc + '">' + esc(p.name) + (self ? ' <span style="font-size:11px;color:#b08820">(Arsenal)</span>' : '') + '</td>' +
+        '<td>' + killHtml + '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function refresh() {
+    fetch('/api/tskmgr/procs')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        procs = data;
+        render();
+      })
+      .catch(function(){ toast('Failed to fetch process list', 'err'); });
+  }
+
+  function killPid(pid, btn) {
+    btn.disabled = true;
+    btn.textContent = '&#8987;';
+    fetch('/api/tskmgr/kill?pid=' + pid)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok) {
+          toast('Killed PID ' + pid, 'ok');
+          /* Optimistic: remove from local list immediately so the row
+             vanishes at once; real refresh at 1.5 s picks up any restart. */
+          procs = procs.filter(function(p){ return p.pid !== pid; });
+          render();
+          setTimeout(refresh, 1500);
+        } else {
+          toast('Kill failed: ' + (d.error||'unknown'), 'err');
+          btn.disabled = false;
+          btn.innerHTML = '&#10005; Kill';
+        }
+      })
+      .catch(function(){
+        toast('Request failed', 'err');
+        btn.disabled = false;
+        btn.innerHTML = '&#10005; Kill';
+      });
+  }
+
+  function togglePause() {
+    paused = !paused;
+    var btn = document.getElementById('pause-btn');
+    var dot = document.getElementById('dot');
+    var lbl = document.getElementById('refresh-label');
+    btn.textContent = paused ? 'Resume' : 'Pause';
+    btn.className = paused ? 'btn active' : 'btn';
+    dot.className = paused ? 'status-dot paused' : 'status-dot';
+    lbl.innerHTML = (paused ? '<span class="status-dot paused"></span>Paused' : '<span class="status-dot"></span>Live');
+    if(!paused) refresh();
+  }
+
+  function tick() {
+    if(!paused) refresh();
+    timer = setTimeout(tick, INTERVAL);
+  }
+
+  /* Try to learn our own PID from /api/state so we can mark Arsenal */
+  fetch('/api/state')
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return {}; });
+
+  /* Sort PID ascending by default */
+  document.querySelector('th[data-col="pid"]').className = 'sorted-asc';
+  document.getElementById('search').addEventListener('input', render);
+
+  refresh();
+  timer = setTimeout(tick, INTERVAL);
+})();
+</script>
+</body>
+</html>
